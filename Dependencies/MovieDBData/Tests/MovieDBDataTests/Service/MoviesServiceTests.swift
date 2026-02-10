@@ -5,7 +5,7 @@ import Testing
 
 struct MoviesServiceTests {
     @Test
-    func fetchPopular_returnsExpectedResults() async throws {
+    func test_fetchPopular_shouldReturnExpectedResults() async throws {
         let environment = Environment()
         let sut = environment.makeSUT()
         environment.mockClient.responseReturnValue = environment.mockMovieListResponse
@@ -15,7 +15,7 @@ struct MoviesServiceTests {
     }
 
     @Test
-    func fetchTopRated_returnsExpectedResults() async throws {
+    func test_fetchTopRated_shouldReturnExpectedResults() async throws {
         let environment = Environment()
         let sut = environment.makeSUT()
         environment.mockClient.responseReturnValue = environment.mockMovieListResponse

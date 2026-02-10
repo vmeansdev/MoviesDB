@@ -5,7 +5,7 @@ import Testing
 
 struct HttpClientTests {
     @Test
-    func test_getRequest_whenSuccess_returnsData() async throws {
+    func test_getRequest_whenSuccess_shouldReturnData() async throws {
         let environment = Environment()
         let sut = environment.makeSUT()
 
@@ -14,7 +14,7 @@ struct HttpClientTests {
     }
 
     @Test
-    func test_postRequest_whenSuccess_returnsData() async throws {
+    func test_postRequest_whenSuccess_shouldReturnData() async throws {
         let environment = Environment()
         let sut = environment.makeSUT()
 

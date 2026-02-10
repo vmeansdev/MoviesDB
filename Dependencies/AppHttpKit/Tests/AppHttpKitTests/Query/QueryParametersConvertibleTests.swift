@@ -4,13 +4,13 @@ import Testing
 
 struct QueryParametersConvertibleTests {
     @Test
-    func manyParamsTest() {
+    func test_manyParams_shouldMatchExpectedParams() {
         let environment = Environment()
         #expect(environment.mockQuery.params == environment.mockParams)
     }
 
     @Test
-    func dictionaryParamsTest() {
+    func test_dictionaryParams_shouldMatchExpectedParams() {
         let environment = Environment()
         #expect(environment.dictionaryQuery.params == environment.mockParams)
     }
