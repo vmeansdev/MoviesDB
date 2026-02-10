@@ -27,5 +27,7 @@
 	<string>$(API_KEY)</string>
 	<key>API_VERSION</key>
 	<string>$(API_VERSION)</string>
+	<key>API_IMAGES_BASE_URL</key>
+	<string>$(API_IMAGES_BASE_URL)</string>
 </dict>
 </plist>

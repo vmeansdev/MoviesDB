@@ -14,6 +14,11 @@ enum Environment {
         value(for: "API_VERSION")
     }
 
+    static var imageBaseURLString: String {
+        let baseURL: String = value(for: "API_IMAGES_BASE_URL")
+        return "https://\(baseURL)"
+    }
+
     private static func value<T: LosslessStringConvertible>(for key: String) -> T {
         do {
             return try PlistReader().value(for: key)

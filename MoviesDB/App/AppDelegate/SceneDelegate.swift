@@ -15,7 +15,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             navigationControllerConfigurator: NavigationControllerConfigurator()
         )
 
-        dependenciesProvider.coordinatorProvider.rootCoordinator().start()
+        dependenciesProvider.coordinatorProvider.popularCoordinator().start()
         self.window = window
     }
 }

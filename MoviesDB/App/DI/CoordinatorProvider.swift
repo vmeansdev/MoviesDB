@@ -2,7 +2,7 @@ import UIKit
 
 @MainActor
 protocol CoordinatorProviderProtocol {
-    func rootCoordinator() -> Coordinator
+    func popularCoordinator() -> Coordinator
 }
 
 final class CoordinatorProvider: CoordinatorProviderProtocol {
@@ -14,7 +14,7 @@ final class CoordinatorProvider: CoordinatorProviderProtocol {
         self.serviceProvider = serviceProvider
     }
 
-    func rootCoordinator() -> Coordinator {
-        RootCoordinator(rootViewController: rootViewController)
+    func popularCoordinator() -> Coordinator {
+        PopularCoordinator(rootViewController: rootViewController, serviceProvider: serviceProvider)
     }
 }

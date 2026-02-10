@@ -1,0 +1,125 @@
+import Foundation
+import Testing
+import MovieDBData
+@testable import MoviesDB
+
+@MainActor
+struct PopularInteractorTests {
+    @Test
+    func test_viewDidLoad_whenInitial_shouldFetchTwoPagesAndPresentLoadedState() async throws {
+        let environment = Environment.make()
+        environment.service.fetchPopularHandler = { options in
+            options.page == 1 ? environment.page1 : environment.page2
+        }
+
+        await environment.sut.viewDidLoad()
+        try await Task.sleep(for: .milliseconds(10))
+
+        let calls = environment.service.fetchPopularCalls
+        #expect(calls.count == 2)
+        #expect(calls[0].page == 1)
+        #expect(calls[1].page == 2)
+
+        let states = environment.presenter.states
+        let loadedStates = states.compactMap { state -> LoadedPopular? in
+            if case let .loaded(value) = state { return value }
+            return nil
+        }
+        #expect(loadedStates.last?.movies.count == 4)
+    }
+
+    @Test
+    func test_didSelect_whenValidIndex_shouldNotifyOutput() async {
+        let environment = Environment.make()
+        environment.service.fetchPopularHandler = { _ in environment.page1 }
+
+        await environment.sut.viewDidLoad()
+        try? await Task.sleep(for: .milliseconds(10))
+
+        await environment.sut.didSelect(item: 0)
+        let selected = environment.output.selectedMovies
+        #expect(selected.count == 1)
+        #expect(selected.first?.id == environment.movie1.id)
+    }
+
+    @Test
+    func test_loadMore_whenNoMoreItems_shouldNotFetch() async {
+        let environment = Environment.make()
+        environment.service.fetchPopularHandler = { _ in environment.noMoreItemsPage }
+
+        await environment.sut.viewDidLoad()
+        try? await Task.sleep(for: .milliseconds(10))
+
+        await environment.sut.loadMore()
+        let calls = environment.service.fetchPopularCalls
+        #expect(calls.count == 1)
+    }
+}
+
+private struct Environment {
+    let sut: PopularInteractor
+    let presenter: MockPopularPresenter
+    let service: MockMoviesService
+    let output: MockPopularInteractorOutput
+
+    let movie1 = Movie(
+        adult: false,
+        backdropPath: nil,
+        genreIDS: [1],
+        id: 1,
+        originalLanguage: "en",
+        originalTitle: "Movie 1",
+        overview: "",
+        popularity: 1,
+        posterPath: "/poster1.jpg",
+        releaseDate: "2025-01-01",
+        title: "Movie 1",
+        video: false,
+        voteAverage: 5,
+        voteCount: 1
+    )
+
+    let movie2 = Movie(
+        adult: false,
+        backdropPath: nil,
+        genreIDS: [2],
+        id: 2,
+        originalLanguage: "en",
+        originalTitle: "Movie 2",
+        overview: "",
+        popularity: 2,
+        posterPath: "/poster2.jpg",
+        releaseDate: "2025-01-02",
+        title: "Movie 2",
+        video: false,
+        voteAverage: 6,
+        voteCount: 2
+    )
+
+    var page1: MovieList {
+        MovieList(page: 1, results: [movie1, movie2], totalPages: 2, totalResults: 4)
+    }
+
+    var page2: MovieList {
+        MovieList(page: 2, results: [movie1, movie2], totalPages: 2, totalResults: 4)
+    }
+
+    var lastPage: MovieList {
+        MovieList(page: 2, results: [], totalPages: 2, totalResults: 4)
+    }
+
+    var noMoreItemsPage: MovieList {
+        MovieList(page: 1, results: [movie1], totalPages: 1, totalResults: 1)
+    }
+
+    @MainActor static func make() -> Environment {
+        let presenter = MockPopularPresenter()
+        let service = MockMoviesService()
+        let output = MockPopularInteractorOutput()
+        let interactor = PopularInteractor(presenter: presenter, service: service, output: output, language: "en")
+        var environment = Environment(sut: interactor, presenter: presenter, service: service, output: output)
+        environment.service.fetchPopularResult = .success(environment.page1)
+        environment.service.fetchTopRatedResult = .success(environment.page1)
+        return environment
+    }
+}
