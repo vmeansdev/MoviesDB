@@ -6,6 +6,13 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		14CB84DA9DF04311A71851BC /* PlistReader in Frameworks */ = {isa = PBXBuildFile; productRef = F8181FB86346440BBFE8DB5C /* PlistReader */; };
+		79AF05C141264E34A26390AD /* AppHttpKit in Frameworks */ = {isa = PBXBuildFile; productRef = 60BD316773214A4CA4EBECA5 /* AppHttpKit */; };
+		8BC6E26BE71D4CDCB947745D /* MovieDBData in Frameworks */ = {isa = PBXBuildFile; productRef = 47B1A00228E74424B7B3DD01 /* MovieDBData */; };
+		A6B0FEE645414E9E8E0CA9C0 /* MovieDBUI in Frameworks */ = {isa = PBXBuildFile; productRef = 2E651837A59B4C41AF427B7D /* MovieDBUI */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		851BAF692F3B615000024ADA /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -22,11 +29,6 @@
 			remoteInfo = MoviesDB;
 		};
 /* End PBXContainerItemProxy section */
-
-/* Begin PBXBuildFile section */
-		A6B0FEE645414E9E8E0CA9C0 /* MovieDBUI in Frameworks */ = {isa = PBXBuildFile; productRef = 2E651837A59B4C41AF427B7D /* MovieDBUI */; };
-		14CB84DA9DF04311A71851BC /* PlistReader in Frameworks */ = {isa = PBXBuildFile; productRef = F8181FB86346440BBFE8DB5C /* PlistReader */; };
-/* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		851BAF522F3B614F00024ADA /* MoviesDB.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MoviesDB.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -72,6 +74,8 @@
 			files = (
 				A6B0FEE645414E9E8E0CA9C0 /* MovieDBUI in Frameworks */,
 				14CB84DA9DF04311A71851BC /* PlistReader in Frameworks */,
+				79AF05C141264E34A26390AD /* AppHttpKit in Frameworks */,
+				8BC6E26BE71D4CDCB947745D /* MovieDBData in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -134,6 +138,8 @@
 			packageProductDependencies = (
 				2E651837A59B4C41AF427B7D /* MovieDBUI */,
 				F8181FB86346440BBFE8DB5C /* PlistReader */,
+				60BD316773214A4CA4EBECA5 /* AppHttpKit */,
+				47B1A00228E74424B7B3DD01 /* MovieDBData */,
 			);
 			productName = MoviesDB;
 			productReference = 851BAF522F3B614F00024ADA /* MoviesDB.app */;
@@ -220,6 +226,8 @@
 			packageReferences = (
 				F867863002E1437581040F03 /* XCLocalSwiftPackageReference "Dependencies/MovieDBUI" */,
 				A1A0403F237544B0B5DA31BE /* XCLocalSwiftPackageReference "Dependencies/PlistReader" */,
+				D126C76F7E5E48C9A1391D08 /* XCLocalSwiftPackageReference "Dependencies/AppHttpKit" */,
+				FEE91B0E7BF54F1AB9513263 /* XCLocalSwiftPackageReference "Dependencies/MovieDBData" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 851BAF532F3B614F00024ADA /* Products */;
@@ -610,13 +618,21 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
+		A1A0403F237544B0B5DA31BE /* XCLocalSwiftPackageReference "Dependencies/PlistReader" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Dependencies/PlistReader;
+		};
+		D126C76F7E5E48C9A1391D08 /* XCLocalSwiftPackageReference "Dependencies/AppHttpKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Dependencies/AppHttpKit;
+		};
 		F867863002E1437581040F03 /* XCLocalSwiftPackageReference "Dependencies/MovieDBUI" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Dependencies/MovieDBUI;
 		};
-		A1A0403F237544B0B5DA31BE /* XCLocalSwiftPackageReference "Dependencies/PlistReader" */ = {
+		FEE91B0E7BF54F1AB9513263 /* XCLocalSwiftPackageReference "Dependencies/MovieDBData" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = Dependencies/PlistReader;
+			relativePath = Dependencies/MovieDBData;
 		};
 /* End XCLocalSwiftPackageReference section */
 
@@ -624,6 +640,16 @@
 		2E651837A59B4C41AF427B7D /* MovieDBUI */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = MovieDBUI;
+		};
+		47B1A00228E74424B7B3DD01 /* MovieDBData */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FEE91B0E7BF54F1AB9513263 /* XCLocalSwiftPackageReference "Dependencies/MovieDBData" */;
+			productName = MovieDBData;
+		};
+		60BD316773214A4CA4EBECA5 /* AppHttpKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D126C76F7E5E48C9A1391D08 /* XCLocalSwiftPackageReference "Dependencies/AppHttpKit" */;
+			productName = AppHttpKit;
 		};
 		F8181FB86346440BBFE8DB5C /* PlistReader */ = {
 			isa = XCSwiftPackageProductDependency;

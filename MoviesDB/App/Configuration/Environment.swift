@@ -2,7 +2,8 @@ import PlistReader
 
 enum Environment {
     static var baseURLString: String {
-        ["https://", value(for: "API_BASE_URL")].joined()
+        let baseURL: String = value(for: "API_BASE_URL")
+        return "https://\(baseURL)/\(apiVersion)"
     }
 
     static var apiKey: String {
