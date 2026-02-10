@@ -23,6 +23,10 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXBuildFile section */
+		A6B0FEE645414E9E8E0CA9C0 /* MovieDBUI in Frameworks */ = {isa = PBXBuildFile; productRef = 2E651837A59B4C41AF427B7D /* MovieDBUI */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		851BAF522F3B614F00024ADA /* MoviesDB.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MoviesDB.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		851BAF682F3B615000024ADA /* MoviesDBTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MoviesDBTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -65,6 +69,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A6B0FEE645414E9E8E0CA9C0 /* MovieDBUI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -125,6 +130,7 @@
 			);
 			name = MoviesDB;
 			packageProductDependencies = (
+				2E651837A59B4C41AF427B7D /* MovieDBUI */,
 			);
 			productName = MoviesDB;
 			productReference = 851BAF522F3B614F00024ADA /* MoviesDB.app */;
@@ -208,6 +214,9 @@
 			);
 			mainGroup = 851BAF492F3B614F00024ADA;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				F867863002E1437581040F03 /* XCLocalSwiftPackageReference "Dependencies/MovieDBUI" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 851BAF532F3B614F00024ADA /* Products */;
 			projectDirPath = "";
@@ -579,6 +588,20 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		F867863002E1437581040F03 /* XCLocalSwiftPackageReference "Dependencies/MovieDBUI" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Dependencies/MovieDBUI;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		2E651837A59B4C41AF427B7D /* MovieDBUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MovieDBUI;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 851BAF4A2F3B614F00024ADA /* Project object */;
 }
