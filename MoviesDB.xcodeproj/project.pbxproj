@@ -30,10 +30,10 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		851BAF7A2F3B615000024ADA /* Exceptions for "MoviesDB" folder in "MoviesDB" target */ = {
+		BC0914392C1C40EE94C0ACB6 /* Exceptions for "MoviesDB" folder in "MoviesDB" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Info.plist,
+				Resources/Info.plist,
 			);
 			target = 851BAF512F3B614F00024ADA /* MoviesDB */;
 		};
@@ -43,7 +43,7 @@
 		851BAF542F3B614F00024ADA /* MoviesDB */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				851BAF7A2F3B615000024ADA /* Exceptions for "MoviesDB" folder in "MoviesDB" target */,
+				BC0914392C1C40EE94C0ACB6 /* Exceptions for "MoviesDB" folder in "MoviesDB" target */,
 			);
 			path = MoviesDB;
 			sourceTree = "<group>";
@@ -290,7 +290,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = MoviesDB/Info.plist;
+				INFOPLIST_FILE = MoviesDB/Resources/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -319,7 +319,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = MoviesDB/Info.plist;
+				INFOPLIST_FILE = MoviesDB/Resources/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";

@@ -9,3 +9,4 @@
 *.xcworkspace/
 project.xcworkspace/
 xcuserdata/
+.build/
