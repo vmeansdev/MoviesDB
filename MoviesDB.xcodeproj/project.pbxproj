@@ -25,6 +25,7 @@
 
 /* Begin PBXBuildFile section */
 		A6B0FEE645414E9E8E0CA9C0 /* MovieDBUI in Frameworks */ = {isa = PBXBuildFile; productRef = 2E651837A59B4C41AF427B7D /* MovieDBUI */; };
+		14CB84DA9DF04311A71851BC /* PlistReader in Frameworks */ = {isa = PBXBuildFile; productRef = F8181FB86346440BBFE8DB5C /* PlistReader */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -70,6 +71,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A6B0FEE645414E9E8E0CA9C0 /* MovieDBUI in Frameworks */,
+				14CB84DA9DF04311A71851BC /* PlistReader in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -131,6 +133,7 @@
 			name = MoviesDB;
 			packageProductDependencies = (
 				2E651837A59B4C41AF427B7D /* MovieDBUI */,
+				F8181FB86346440BBFE8DB5C /* PlistReader */,
 			);
 			productName = MoviesDB;
 			productReference = 851BAF522F3B614F00024ADA /* MoviesDB.app */;
@@ -216,6 +219,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				F867863002E1437581040F03 /* XCLocalSwiftPackageReference "Dependencies/MovieDBUI" */,
+				A1A0403F237544B0B5DA31BE /* XCLocalSwiftPackageReference "Dependencies/PlistReader" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 851BAF532F3B614F00024ADA /* Products */;
@@ -293,6 +297,8 @@
 /* Begin XCBuildConfiguration section */
 		851BAF7C2F3B615000024ADA /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 851BAF542F3B614F00024ADA /* MoviesDB */;
+			baseConfigurationReferenceRelativePath = App/Configuration/Production.xcconfig;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -322,6 +328,8 @@
 		};
 		851BAF7D2F3B615000024ADA /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 851BAF542F3B614F00024ADA /* MoviesDB */;
+			baseConfigurationReferenceRelativePath = App/Configuration/Production.xcconfig;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -351,6 +359,8 @@
 		};
 		851BAF7E2F3B615000024ADA /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 851BAF542F3B614F00024ADA /* MoviesDB */;
+			baseConfigurationReferenceRelativePath = App/Configuration/Production.xcconfig;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -414,6 +424,8 @@
 		};
 		851BAF7F2F3B615000024ADA /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 851BAF542F3B614F00024ADA /* MoviesDB */;
+			baseConfigurationReferenceRelativePath = App/Configuration/Production.xcconfig;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -470,6 +482,8 @@
 		};
 		851BAF812F3B615000024ADA /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 851BAF542F3B614F00024ADA /* MoviesDB */;
+			baseConfigurationReferenceRelativePath = App/Configuration/Production.xcconfig;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
@@ -491,6 +505,8 @@
 		};
 		851BAF822F3B615000024ADA /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 851BAF542F3B614F00024ADA /* MoviesDB */;
+			baseConfigurationReferenceRelativePath = App/Configuration/Production.xcconfig;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
@@ -512,6 +528,8 @@
 		};
 		851BAF842F3B615000024ADA /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 851BAF542F3B614F00024ADA /* MoviesDB */;
+			baseConfigurationReferenceRelativePath = App/Configuration/Production.xcconfig;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -531,6 +549,8 @@
 		};
 		851BAF852F3B615000024ADA /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 851BAF542F3B614F00024ADA /* MoviesDB */;
+			baseConfigurationReferenceRelativePath = App/Configuration/Production.xcconfig;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -594,12 +614,21 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Dependencies/MovieDBUI;
 		};
+		A1A0403F237544B0B5DA31BE /* XCLocalSwiftPackageReference "Dependencies/PlistReader" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Dependencies/PlistReader;
+		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
 		2E651837A59B4C41AF427B7D /* MovieDBUI */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = MovieDBUI;
+		};
+		F8181FB86346440BBFE8DB5C /* PlistReader */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1A0403F237544B0B5DA31BE /* XCLocalSwiftPackageReference "Dependencies/PlistReader" */;
+			productName = PlistReader;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
