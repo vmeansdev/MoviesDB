@@ -7,6 +7,9 @@ extension String {
 
 extension Localizable {
     var popularCountTitle: String { string(forKey: "popular_count_title") }
+    var topRatedCountTitle: String { string(forKey: "top_rated_count_title") }
+    var tabPopularTitle: String { string(forKey: "tabitem_popular_title") }
+    var tabTopRatedTitle: String { string(forKey: "tabitem_toprated_title") }
 }
 
 final class Localizable {

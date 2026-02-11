@@ -2,7 +2,7 @@ import Foundation
 import MovieDBData
 import MovieDBUI
 
-protocol PopularInteractorProtocol: Actor {
+protocol TopRatedInteractorProtocol: Actor {
     func viewDidLoad() async
     func viewWillUnload() async
     func didSelect(item: Int) async
@@ -11,23 +11,23 @@ protocol PopularInteractorProtocol: Actor {
 }
 
 @MainActor
-protocol PopularInteractorOutput: AnyObject {
+protocol TopRatedInteractorOutput: AnyObject {
     func didSelect(movie: Movie)
 }
 
-actor PopularInteractor: PopularInteractorProtocol {
-    private let presenter: PopularPresenterProtocol
+actor TopRatedInteractor: TopRatedInteractorProtocol {
+    private let presenter: TopRatedPresenterProtocol
     private let service: MoviesServiceProtocol
-    private let output: PopularInteractorOutput
+    private let output: TopRatedInteractorOutput
     private let language: String
     private(set) var currentTask: Task<Void, Never>?
-    private(set) var popular = LoadedPopular(currentPage: 0, totalPages: 1, totalResults: 0, movies: [])
+    private(set) var topRated = LoadedTopRated(currentPage: 0, totalPages: 1, totalResults: 0, movies: [])
     private(set) var isLoading = false
 
     init(
-        presenter: PopularPresenterProtocol,
+        presenter: TopRatedPresenterProtocol,
         service: MoviesServiceProtocol,
-        output: PopularInteractorOutput,
+        output: TopRatedInteractorOutput,
         language: String = Locale.current.language.languageCode?.identifier ?? Constants.en
     ) {
         self.presenter = presenter
@@ -45,49 +45,47 @@ actor PopularInteractor: PopularInteractorProtocol {
     }
 
     func didSelect(item: Int) async {
-        guard let movie = popular.movies[safe: item] else {
-            return
-        }
+        guard let movie = await topRated.movies[safe: item] else { return }
         await output.didSelect(movie: movie)
     }
 
     func loadMore() async {
-        guard !isLoading, await popular.hasMoreItems else { return }
+        guard !isLoading, await topRated.hasMoreItems else { return }
         loadNextPage()
     }
 
     func canLoadMore(item: Int) async -> Bool {
-        let nextBatchThreshold = max(popular.movies.count - Constants.loadMoreThreshold, Constants.loadMoreThreshold)
-        let hasMoreItems = await popular.hasMoreItems
+        let nextBatchThreshold = max(topRated.movies.count - Constants.loadMoreThreshold, Constants.loadMoreThreshold)
+        let hasMoreItems = await topRated.hasMoreItems
         return item >= nextBatchThreshold && hasMoreItems && !isLoading
     }
 
     private func loadNextPage() {
         currentTask?.cancel()
         currentTask = Task {
-            let nextPage = popular.currentPage + 1
-            if popular.currentPage == 0 {
+            let nextPage = topRated.currentPage + 1
+            if topRated.currentPage == 0 {
                 await fetchInitialPages(startingAt: nextPage)
             } else {
-                await fetchPopular(page: nextPage)
+                await fetchTopRated(page: nextPage)
             }
         }
     }
 
-    private func fetchPopular(page: Int) async {
+    private func fetchTopRated(page: Int) async {
         guard !isLoading else { return }
         do {
             guard !Task.isCancelled else { return }
             isLoading = true
-            await presenter.present(state: .loading(isInitial: popular.currentPage == 0))
+            await presenter.present(state: .loading(isInitial: topRated.currentPage == 0))
             let response = try await fetchPage(page: page)
-            let updated = LoadedPopular(
+            let updated = LoadedTopRated(
                 currentPage: response.page,
                 totalPages: response.totalPages,
                 totalResults: response.totalResults,
-                movies: popular.movies + response.results
+                movies: topRated.movies + response.results
             )
-            popular = updated
+            topRated = updated
             await presenter.present(state: .loaded(updated))
             isLoading = false
         } catch {
@@ -105,10 +103,10 @@ actor PopularInteractor: PopularInteractorProtocol {
             isLoading = true
             await presenter.present(state: .loading(isInitial: true))
 
-            var movies = popular.movies
-            var currentPage = popular.currentPage
-            var totalPages = popular.totalPages
-            var totalResults = popular.totalResults
+            var movies = topRated.movies
+            var currentPage = topRated.currentPage
+            var totalPages = topRated.totalPages
+            var totalResults = topRated.totalResults
 
             for index in 0..<Constants.initialPagesToLoad {
                 let targetPage = page + index
@@ -122,13 +120,13 @@ actor PopularInteractor: PopularInteractorProtocol {
                 }
             }
 
-            let updated = LoadedPopular(
+            let updated = LoadedTopRated(
                 currentPage: currentPage,
                 totalPages: totalPages,
                 totalResults: totalResults,
                 movies: movies
             )
-            popular = updated
+            topRated = updated
             await presenter.present(state: .loaded(updated))
             isLoading = false
         } catch {
@@ -140,7 +138,7 @@ actor PopularInteractor: PopularInteractorProtocol {
     }
 
     private func fetchPage(page: Int) async throws -> MovieList {
-        try await service.fetchPopular(options: .init(page: page, language: language))
+        try await service.fetchTopRated(options: .init(page: page, language: language))
     }
 }
 

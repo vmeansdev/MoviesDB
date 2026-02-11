@@ -1,4 +1,4 @@
+import MovieDBUI
+
 @MainActor
-protocol Coordinator: AnyObject {
-    func start()
-}
+protocol Coordinator: AnyObject, TabCoordinator {}

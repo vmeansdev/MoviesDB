@@ -2,7 +2,7 @@ import Foundation
 import MovieDBData
 import MovieDBUI
 
-struct LoadedPopular: Equatable, Sendable {
+struct LoadedTopRated: Equatable {
     let currentPage: Int
     let totalPages: Int
     let totalResults: Int
@@ -13,14 +13,12 @@ struct LoadedPopular: Equatable, Sendable {
     }
 }
 
-typealias RetryAction = @MainActor @Sendable () -> Void
-
-enum PopularState: Equatable, Sendable {
+enum TopRatedState: Equatable {
     case loading(isInitial: Bool)
-    case loaded(LoadedPopular)
+    case loaded(LoadedTopRated)
     case error(Error, RetryAction?)
 
-    static func == (lhs: PopularState, rhs: PopularState) -> Bool {
+    static func == (lhs: TopRatedState, rhs: TopRatedState) -> Bool {
         switch (lhs, rhs) {
         case (.loading, .loading):
             return true
@@ -35,19 +33,19 @@ enum PopularState: Equatable, Sendable {
 }
 
 @MainActor
-protocol PopularPresenterProtocol {
-    func present(state: PopularState) async
+protocol TopRatedPresenterProtocol {
+    func present(state: TopRatedState) async
 }
 
-final class PopularPresenter: PopularPresenterProtocol {
-    weak var view: PopularPresentable?
+final class TopRatedPresenter: TopRatedPresenterProtocol {
+    weak var view: TopRatedPresentable?
 
-    func present(state: PopularState) async {
+    func present(state: TopRatedState) async {
         switch state {
         case let .loading(isInitial):
             view?.displayLoading(isInitial: isInitial)
-        case let .loaded(popular):
-            let movies: [MovieCollectionViewModel] = popular.movies.enumerated().map { index, movie in
+        case let .loaded(topRated):
+            let movies: [MovieCollectionViewModel] = topRated.movies.enumerated().map { index, movie in
                 let posterURL = movie.posterPath.isEmpty ? nil : URL(string: "\(Constants.posterBaseURL)\(movie.posterPath)")
                 return MovieCollectionViewModel(
                     id: "\(movie.id)-\(index)",
@@ -56,7 +54,7 @@ final class PopularPresenter: PopularPresenterProtocol {
                     posterURL: posterURL
                 )
             }
-            view?.displayTitle(Constants.title(popularCount: movies.count))
+            view?.displayTitle(Constants.title(topRatedCount: movies.count))
             view?.displayMovies(movies)
         case let .error(error, action):
             view?.displayError(ErrorViewModel(errorMessage: error.localizedDescription, retryAction: action))
@@ -65,8 +63,8 @@ final class PopularPresenter: PopularPresenterProtocol {
 
     private enum Constants {
         static var posterBaseURL: String { "\(Environment.imageBaseURLString)/t/p/w500" }
-        static func title(popularCount: Int) -> String {
-            String(format: String.localizable.popularCountTitle, popularCount)
+        static func title(topRatedCount: Int) -> String {
+            String(format: String.localizable.topRatedCountTitle, topRatedCount)
         }
     }
 }

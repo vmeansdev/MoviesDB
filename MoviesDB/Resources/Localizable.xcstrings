@@ -11,6 +11,39 @@
           }
         }
       }
+    },
+    "tabitem_popular_title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Popular"
+          }
+        }
+      }
+    },
+    "tabitem_toprated_title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Top Rated"
+          }
+        }
+      }
+    },
+    "top_rated_count_title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Top Rated %d"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

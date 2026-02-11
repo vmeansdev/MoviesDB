@@ -1,7 +1,7 @@
 import MovieDBData
 import UIKit
 
-final class PopularCoordinator: Coordinator {
+final class TopRatedCoordinator: Coordinator {
     private let rootViewController: UINavigationController
     private let serviceProvider: ServiceProviderProtocol
     private let coordinatorProvider: CoordinatorProviderProtocol
@@ -17,12 +17,12 @@ final class PopularCoordinator: Coordinator {
     }
 
     func start() {
-        let viewController = PopularViewController.build(moviesService: serviceProvider.moviesService, output: self)
+        let viewController = TopRatedViewController.build(moviesService: serviceProvider.moviesService, output: self)
         rootViewController.setViewControllers([viewController], animated: false)
     }
 }
 
-extension PopularCoordinator: PopularInteractorOutput {
+extension TopRatedCoordinator: TopRatedInteractorOutput {
     func didSelect(movie: Movie) {
         // TODO: push details when details scene is available
     }

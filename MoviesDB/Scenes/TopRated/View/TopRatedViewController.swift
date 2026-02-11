@@ -2,16 +2,16 @@ import MovieDBUI
 import UIKit
 
 @MainActor
-protocol PopularPresentable: AnyObject {
+protocol TopRatedPresentable: AnyObject {
     func displayLoading(isInitial: Bool)
     func displayMovies(_ movies: [MovieCollectionViewModel])
     func displayError(_ error: ErrorViewModel)
     func displayTitle(_ title: String)
 }
 
-final class PopularViewController: UIViewController {
+final class TopRatedViewController: UIViewController {
     // MARK: - Properties
-    private let interactor: PopularInteractorProtocol
+    private let interactor: TopRatedInteractorProtocol
     private lazy var collectionView: UICollectionView = {
         let view = UICollectionView(frame: .zero, collectionViewLayout: makeCollectionLayout())
         view.isPrefetchingEnabled = true
@@ -26,7 +26,7 @@ final class PopularViewController: UIViewController {
     private var dataSource: UICollectionViewDiffableDataSource<Int, MovieCollectionViewModel>!
 
     // MARK: - Initialization
-    init(interactor: PopularInteractorProtocol) {
+    init(interactor: TopRatedInteractorProtocol) {
         self.interactor = interactor
         super.init(nibName: nil, bundle: nil)
     }
@@ -38,7 +38,7 @@ final class PopularViewController: UIViewController {
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = String(format: String.localizable.popularCountTitle, 0)
+        title = String(format: String.localizable.topRatedCountTitle, 0)
         edgesForExtendedLayout = [.bottom]
         navigationItem.largeTitleDisplayMode = .automatic
         view.backgroundColor = .systemBackground
@@ -59,6 +59,11 @@ final class PopularViewController: UIViewController {
         }
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(false, animated: false)
+    }
+
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         Task { await interactor.viewWillUnload() }
@@ -73,7 +78,7 @@ final class PopularViewController: UIViewController {
     }
 }
 
-extension PopularViewController: PopularPresentable {
+extension TopRatedViewController: TopRatedPresentable {
     func displayLoading(isInitial: Bool) {
         guard isInitial else { return }
         attach(LoadingViewController())
@@ -107,7 +112,7 @@ extension PopularViewController: PopularPresentable {
 }
 
 // MARK: - Layout configuration
-private extension PopularViewController {
+private extension TopRatedViewController {
     func makeCollectionLayout() -> UICollectionViewLayout {
         let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .fractionalHeight(1))
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
@@ -136,7 +141,7 @@ private extension PopularViewController {
 }
 
 // MARK: - UICollectionViewDelegate
-extension PopularViewController: UICollectionViewDelegate {
+extension TopRatedViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didEndDisplaying cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
         (cell as? CollectionViewDetachable)?.onDetach()
     }
@@ -155,7 +160,7 @@ extension PopularViewController: UICollectionViewDelegate {
 }
 
 // MARK: - UICollectionViewDataSourcePrefetching
-extension PopularViewController: UICollectionViewDataSourcePrefetching {
+extension TopRatedViewController: UICollectionViewDataSourcePrefetching {
     func collectionView(_ collectionView: UICollectionView, prefetchItemsAt indexPaths: [IndexPath]) {
         let maxItem = indexPaths.map(\.item).max() ?? 0
         Task {

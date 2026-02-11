@@ -1,26 +1,32 @@
 import AppHttpKit
+import MovieDBUI
 import UIKit
 
 @MainActor
 protocol DependenciesProviderProtocol {
     var coordinatorProvider: CoordinatorProviderProtocol { get }
     var serviceProvider: ServiceProviderProtocol { get }
+    var uiAssets: MovieDBUIAssetsProtocol { get }
 }
 
 final class DependenciesProvider: DependenciesProviderProtocol {
     let coordinatorProvider: CoordinatorProviderProtocol
     let serviceProvider: ServiceProviderProtocol
+    let uiAssets: MovieDBUIAssetsProtocol
 
     init(
         window: UIWindow?,
-        rootNavigationController: UINavigationController,
         windowConfigurator: WindowConfiguratorProtocol,
-        navigationControllerConfigurator: NavigationControllerConfiguratorProtocol
+        appearanceConfigurator: AppAppearanceConfiguratorProtocol
     ) {
-        let client = HttpClient(baseURL: Environment.baseURLString)
-        serviceProvider = ServiceProvider(apiKey: Environment.apiKey, httpClient: client)
-        coordinatorProvider = CoordinatorProvider(rootViewController: rootNavigationController, serviceProvider: serviceProvider)
-        navigationControllerConfigurator.configure(navigationController: rootNavigationController)
-        windowConfigurator.configure(window: window, navigationController: rootNavigationController)
+        uiAssets = MovieDBUIAssets.system
+        serviceProvider = ServiceProvider(apiKey: Environment.apiKey, httpClient: HttpClient(baseURL: Environment.baseURLString))
+        coordinatorProvider = CoordinatorProvider(
+            window: window,
+            serviceProvider: serviceProvider,
+            windowConfigurator: windowConfigurator,
+            appearanceConfigurator: appearanceConfigurator,
+            uiAssets: uiAssets
+        )
     }
 }

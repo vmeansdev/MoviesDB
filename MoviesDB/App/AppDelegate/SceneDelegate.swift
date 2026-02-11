@@ -1,3 +1,4 @@
+import MovieDBUI
 import UIKit
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
@@ -6,16 +7,13 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = scene as? UIWindowScene else { return }
         let window = UIWindow(windowScene: windowScene)
-        let navigationController = UINavigationController()
-
         let dependenciesProvider = DependenciesProvider(
             window: window,
-            rootNavigationController: navigationController,
             windowConfigurator: WindowConfigurator(),
-            navigationControllerConfigurator: NavigationControllerConfigurator()
+            appearanceConfigurator: AppAppearanceConfigurator()
         )
 
-        dependenciesProvider.coordinatorProvider.popularCoordinator().start()
+        dependenciesProvider.coordinatorProvider.rootCoordinator().start()
         self.window = window
     }
 }
