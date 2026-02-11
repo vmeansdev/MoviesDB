@@ -24,7 +24,12 @@ struct MovieDetailsCoordinatorTests {
             voteAverage: 7.0,
             voteCount: 10
         )
-        let sut = MovieDetailsCoordinator(rootViewController: navigationController, movie: movie)
+        let dependenciesProvider = MockDependenciesProvider()
+        let sut = MovieDetailsCoordinator(
+            rootViewController: navigationController,
+            movie: movie,
+            dependenciesProvider: dependenciesProvider
+        )
 
         sut.start()
 

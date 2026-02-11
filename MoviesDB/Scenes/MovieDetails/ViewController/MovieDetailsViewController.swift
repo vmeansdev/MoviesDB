@@ -1,20 +1,10 @@
-import MovieDBData
 import MovieDBUI
 import SwiftUI
 import UIKit
 
 final class MovieDetailsViewController: UIHostingController<MovieDetailsView> {
-    private let viewModel: MovieDetailsViewModel
-
-    init(movie: Movie) {
-        viewModel = MovieDetailsViewModel(movie: movie)
-        super.init(rootView: MovieDetailsView(viewModel: viewModel))
-        view.backgroundColor = .systemBackground
-    }
-
-    init(viewModel: MovieDetailsViewModel) {
-        self.viewModel = viewModel
-        super.init(rootView: MovieDetailsView(viewModel: viewModel))
+    init(with rootView: MovieDetailsView) {
+        super.init(rootView: rootView)
         view.backgroundColor = .systemBackground
     }
     

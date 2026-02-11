@@ -1,4 +1,3 @@
-import MovieDBData
 import MovieDBUI
 import Testing
 @testable import MoviesDB
@@ -6,24 +5,20 @@ import Testing
 struct MovieDetailsViewControllerTests {
     @Test
     @MainActor
-    func test_init_shouldCreateHostingController() async {
-        let movie = Movie(
-            adult: false,
-            backdropPath: "/backdrop.jpg",
-            genreIDS: [],
-            id: 1,
-            originalLanguage: "en",
-            originalTitle: "Original",
-            overview: "Overview",
-            popularity: 1,
-            posterPath: "/poster.jpg",
-            releaseDate: "2026-01-01",
-            title: "Title",
-            video: false,
-            voteAverage: 7.0,
-            voteCount: 10
+    func test_init_shouldStoreRootView() async {
+        let viewModel = MovieDetailsViewModel(
+            content: MovieDetailsContent(
+                title: "Title",
+                subtitle: nil,
+                overviewTitle: "Overview",
+                overview: "Overview",
+                metadata: [],
+                posterURL: nil,
+                backdropURL: nil
+            )
         )
-        let sut = MovieDetailsViewController(movie: movie)
+        let rootView = MovieDetailsView(viewModel: viewModel)
+        let sut = MovieDetailsViewController(rootView: rootView)
 
         #expect(sut.rootView is MovieDetailsView)
     }

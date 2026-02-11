@@ -9,6 +9,25 @@ final class MockMoviesService: MoviesServiceProtocol {
     private(set) var fetchTopRatedCalls: [MovieListOptions] = []
     var fetchTopRatedResult: Result<MovieList, Error> = .success(MovieList())
     var fetchTopRatedHandler: ((MovieListOptions) throws -> MovieList)?
+    private(set) var fetchDetailsCalls: [Int] = []
+    var fetchDetailsResult: Result<MovieDetails, Error> = .success(
+        MovieDetails(
+            id: 0,
+            title: "",
+            originalTitle: "",
+            originalLanguage: "",
+            overview: "",
+            posterPath: nil,
+            backdropPath: nil,
+            releaseDate: nil,
+            runtime: nil,
+            voteAverage: 0,
+            voteCount: 0,
+            genres: [],
+            spokenLanguages: []
+        )
+    )
+    var fetchDetailsHandler: ((Int) throws -> MovieDetails)?
 
     func fetchPopular(options: MovieListOptions) async throws -> MovieList {
         fetchPopularCalls.append(options)
@@ -24,5 +43,13 @@ final class MockMoviesService: MoviesServiceProtocol {
             return try handler(options)
         }
         return try fetchTopRatedResult.get()
+    }
+
+    func fetchDetails(id: Int) async throws -> MovieDetails {
+        fetchDetailsCalls.append(id)
+        if let handler = fetchDetailsHandler {
+            return try handler(id)
+        }
+        return try fetchDetailsResult.get()
     }
 }

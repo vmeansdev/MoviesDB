@@ -27,6 +27,24 @@ private struct MockMoviesService: MoviesServiceProtocol {
     func fetchTopRated(options: MovieListOptions) async throws -> MovieList {
         MovieList(page: 1, results: [], totalPages: 1, totalResults: 0)
     }
+
+    func fetchDetails(id: Int) async throws -> MovieDetails {
+        MovieDetails(
+            id: id,
+            title: "The First Movie",
+            originalTitle: "The First Movie",
+            originalLanguage: "en",
+            overview: "Preview overview.",
+            posterPath: "/pup.jpg",
+            backdropPath: nil,
+            releaseDate: "2026-01-01",
+            runtime: 120,
+            voteAverage: 7.8,
+            voteCount: 120,
+            genres: [],
+            spokenLanguages: []
+        )
+    }
 }
 
 private final class MockOutput: PopularInteractorOutput {

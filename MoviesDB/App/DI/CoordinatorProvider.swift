@@ -17,6 +17,7 @@ final class CoordinatorProvider: CoordinatorProviderProtocol {
     private let windowConfigurator: WindowConfiguratorProtocol
     private let appearanceConfigurator: AppAppearanceConfiguratorProtocol
     private let uiAssets: MovieDBUIAssetsProtocol
+    private let dependenciesProvider: DependenciesProviderProtocol
     private lazy var popularStack: CoordinatorStack = makePopularStack()
     private lazy var topRatedStack: CoordinatorStack = makeTopRatedStack()
     private lazy var root: Coordinator = makeRootCoordinator()
@@ -26,13 +27,15 @@ final class CoordinatorProvider: CoordinatorProviderProtocol {
         serviceProvider: ServiceProviderProtocol,
         windowConfigurator: WindowConfiguratorProtocol,
         appearanceConfigurator: AppAppearanceConfiguratorProtocol,
-        uiAssets: MovieDBUIAssetsProtocol
+        uiAssets: MovieDBUIAssetsProtocol,
+        dependenciesProvider: DependenciesProviderProtocol
     ) {
         self.window = window
         self.serviceProvider = serviceProvider
         self.windowConfigurator = windowConfigurator
         self.appearanceConfigurator = appearanceConfigurator
         self.uiAssets = uiAssets
+        self.dependenciesProvider = dependenciesProvider
     }
 
     func rootCoordinator() -> Coordinator {
@@ -48,7 +51,11 @@ final class CoordinatorProvider: CoordinatorProviderProtocol {
     }
 
     func movieDetailsCoordinator(rootViewController: UINavigationController, movie: Movie) -> Coordinator {
-        MovieDetailsCoordinator(rootViewController: rootViewController, movie: movie)
+        MovieDetailsCoordinator(
+            rootViewController: rootViewController,
+            movie: movie,
+            dependenciesProvider: dependenciesProvider
+        )
     }
 
     func allCoordinators() -> [Coordinator] {

@@ -19,6 +19,9 @@ extension Localizable {
     var movieDetailsLanguageLabel: String { string(forKey: "movie_details_language_label") }
     var movieDetailsOriginalTitleLabel: String { string(forKey: "movie_details_original_title_label") }
     var movieDetailsSubtitleSeparator: String { string(forKey: "movie_details_subtitle_separator") }
+    var movieDetailsRuntimeLabel: String { string(forKey: "movie_details_runtime_label") }
+    var movieDetailsRuntimeValue: String { string(forKey: "movie_details_runtime_value") }
+    var movieDetailsGenresLabel: String { string(forKey: "movie_details_genres_label") }
 }
 
 final class Localizable {
