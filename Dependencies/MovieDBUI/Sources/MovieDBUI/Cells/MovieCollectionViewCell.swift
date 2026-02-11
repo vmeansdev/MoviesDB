@@ -2,6 +2,8 @@ import Kingfisher
 import UIKit
 
 public class MovieCollectionViewCell: CollectionViewCell<MovieCollectionViewModel>, CollectionViewDetachable {
+    public var onToggleWatchlist: (() -> Void)?
+
     private let posterImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFill
@@ -40,16 +42,20 @@ public class MovieCollectionViewCell: CollectionViewCell<MovieCollectionViewMode
         return stackView
     }()
 
+    private let watchlistButton = RoundButton()
+
     public override init(frame: CGRect) {
         super.init(frame: frame)
 
         contentView.addSubview(posterImageView)
         contentView.addSubview(overlayView)
         overlayView.addSubview(stackView)
+        overlayView.addSubview(watchlistButton)
         stackView.addArrangedSubview(titleLabel)
         stackView.addArrangedSubview(subtitleLabel)
 
         setupConstraints()
+        watchlistButton.addTarget(self, action: #selector(didTapWatchlist), for: .touchUpInside)
     }
 
     public required init?(coder: NSCoder) {
@@ -57,7 +63,7 @@ public class MovieCollectionViewCell: CollectionViewCell<MovieCollectionViewMode
     }
 
     private func setupConstraints() {
-        [posterImageView, overlayView, stackView].forEach {
+        [posterImageView, overlayView, stackView, watchlistButton].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
         }
 
@@ -74,7 +80,12 @@ public class MovieCollectionViewCell: CollectionViewCell<MovieCollectionViewMode
 
             stackView.leadingAnchor.constraint(equalTo: overlayView.leadingAnchor, constant: 8),
             stackView.trailingAnchor.constraint(equalTo: overlayView.trailingAnchor, constant: -8),
-            stackView.bottomAnchor.constraint(equalTo: overlayView.bottomAnchor, constant: -8)
+            stackView.bottomAnchor.constraint(equalTo: overlayView.bottomAnchor, constant: -8),
+
+            watchlistButton.trailingAnchor.constraint(equalTo: overlayView.trailingAnchor, constant: -8),
+            watchlistButton.bottomAnchor.constraint(equalTo: overlayView.bottomAnchor, constant: -8),
+            watchlistButton.heightAnchor.constraint(equalToConstant: 36),
+            watchlistButton.widthAnchor.constraint(equalToConstant: 36)
         ])
     }
 
@@ -89,9 +100,23 @@ public class MovieCollectionViewCell: CollectionViewCell<MovieCollectionViewMode
         titleLabel.accessibilityLabel = viewModel.title
         subtitleLabel.text = viewModel.subtitle
         subtitleLabel.accessibilityLabel = viewModel.subtitle
+        updateWatchlistButton(with: viewModel)
     }
 
     public func onDetach() {
         posterImageView.kf.cancelDownloadTask()
+    }
+
+    public override func prepareForReuse() {
+        super.prepareForReuse()
+        onToggleWatchlist = nil
+    }
+
+    private func updateWatchlistButton(with viewModel: MovieCollectionViewModel) {
+        watchlistButton.configure(icon: viewModel.watchlistIcon, tintColor: viewModel.watchlistTintColor)
+    }
+
+    @objc private func didTapWatchlist() {
+        onToggleWatchlist?()
     }
 }

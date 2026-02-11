@@ -48,7 +48,7 @@ private struct Environment {
 
     static func make() -> Environment {
         let view = MockTopRatedView()
-        let presenter = TopRatedPresenter()
+        let presenter = TopRatedPresenter(uiAssets: MovieDBUIAssets.system)
         presenter.view = view
 
         let movies = [
@@ -85,7 +85,7 @@ private struct Environment {
                 voteCount: 2
             )
         ]
-        let loaded = LoadedTopRated(currentPage: 1, totalPages: 1, totalResults: 2, movies: movies)
+        let loaded = LoadedTopRated(currentPage: 1, totalPages: 1, totalResults: 2, movies: movies, watchlistIds: [])
         let title = String(format: String.localizable.topRatedCountTitle, movies.count)
         return Environment(sut: presenter, view: view, loadedTopRated: loaded, expectedTitle: title)
     }

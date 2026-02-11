@@ -16,6 +16,7 @@ final class MockCoordinatorProvider: CoordinatorProviderProtocol {
     let root = MockCoordinator()
     let popular = MockCoordinator()
     let topRated = MockCoordinator()
+    let watchlist = MockCoordinator()
     private(set) var movieDetailsCoordinatorMovie: Movie?
 
     func rootCoordinator() -> Coordinator {
@@ -30,12 +31,16 @@ final class MockCoordinatorProvider: CoordinatorProviderProtocol {
         topRated
     }
 
+    func watchlistCoordinator() -> Coordinator {
+        watchlist
+    }
+
     func movieDetailsCoordinator(rootViewController: UINavigationController, movie: Movie) -> Coordinator {
         movieDetailsCoordinatorMovie = movie
         return MockCoordinator()
     }
 
     func allCoordinators() -> [Coordinator] {
-        [root, popular, topRated]
+        [root, popular, topRated, watchlist]
     }
 }

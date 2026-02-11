@@ -67,7 +67,12 @@ final class PopularViewController: UIViewController {
     private func setupDataSource() {
         dataSource = UICollectionViewDiffableDataSource<Int, MovieCollectionViewModel>(collectionView: collectionView) { collectionView, indexPath, item in
             let cell = collectionView.dequeueReusableCell(MovieCollectionViewCell.self, for: indexPath)
-            (cell as? MovieCollectionViewCell)?.configure(with: item)
+            if let movieCell = cell as? MovieCollectionViewCell {
+                movieCell.configure(with: item)
+                movieCell.onToggleWatchlist = { [weak self] in
+                    Task { await self?.interactor.didToggleWatchlist(item: indexPath.item) }
+                }
+            }
             return cell
         }
     }
@@ -88,6 +93,7 @@ extension PopularViewController: PopularPresentable {
         var snapshot = NSDiffableDataSourceSnapshot<Int, MovieCollectionViewModel>()
         snapshot.appendSections([0])
         snapshot.appendItems(movies)
+        snapshot.reloadItems(movies)
         dataSource.apply(snapshot, animatingDifferences: true)
     }
 

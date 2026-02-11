@@ -1,12 +1,41 @@
 import Foundation
 import MovieDBData
 import MovieDBUI
+import UIKit
 
 extension MovieDetailsViewModel {
-    convenience init(movie: Movie, moviesService: MoviesServiceProtocol?) {
+    convenience init(
+        movie: Movie,
+        moviesService: MoviesServiceProtocol?,
+        watchlistStore: WatchlistStoreProtocol?,
+        uiAssets: MovieDBUIAssetsProtocol?
+    ) {
         let baseContent = Self.makeContent(movie: movie, details: nil)
+        let watchlistUpdates: (@Sendable () async -> AsyncStream<Bool>)? = {
+            guard let watchlistStore else { return AsyncStream { $0.finish() } }
+            return AsyncStream { continuation in
+                Task {
+                    let stream = await watchlistStore.itemsStream()
+                    for await items in stream {
+                        continuation.yield(items.contains { $0.id == movie.id })
+                    }
+                    continuation.finish()
+                }
+            }
+        }
+        let toggleWatchlist: (@Sendable () async -> Void)? = {
+            guard let watchlistStore else { return }
+            await watchlistStore.toggle(movie: movie)
+        }
         self.init(
             content: baseContent,
+            isInWatchlist: false,
+            watchlistIcon: uiAssets?.heartIcon,
+            watchlistFilledIcon: uiAssets?.heartFilledIcon,
+            watchlistActiveTintColor: .systemPink,
+            watchlistInactiveTintColor: .white,
+            watchlistUpdates: watchlistUpdates,
+            toggleWatchlistAction: toggleWatchlist,
             loadDetails: {
                 guard let moviesService else { return baseContent }
                 let details = try await moviesService.fetchDetails(id: movie.id)
@@ -16,7 +45,7 @@ extension MovieDetailsViewModel {
     }
 
     convenience init(movie: Movie) {
-        self.init(movie: movie, moviesService: nil)
+        self.init(movie: movie, moviesService: nil, watchlistStore: nil, uiAssets: nil)
     }
 }
 

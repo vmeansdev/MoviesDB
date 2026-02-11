@@ -10,6 +10,9 @@ extension Localizable {
     var topRatedCountTitle: String { string(forKey: "top_rated_count_title") }
     var tabPopularTitle: String { string(forKey: "tabitem_popular_title") }
     var tabTopRatedTitle: String { string(forKey: "tabitem_toprated_title") }
+    var tabWatchlistTitle: String { string(forKey: "tabitem_watchlist_title") }
+    var watchlistEmptyTitle: String { string(forKey: "watchlist_empty_title") }
+    var watchlistEmptySubtitle: String { string(forKey: "watchlist_empty_subtitle") }
     var movieDetailsOverviewTitle: String { string(forKey: "movie_details_overview_title") }
     var movieDetailsRatingLabel: String { string(forKey: "movie_details_rating_label") }
     var movieDetailsRatingValue: String { string(forKey: "movie_details_rating_value") }

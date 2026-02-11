@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Movie: Decodable, Sendable, Equatable {
+public struct Movie: Codable, Sendable, Equatable {
     public let adult: Bool
     public let backdropPath: String?
     public let genreIDS: [Int]

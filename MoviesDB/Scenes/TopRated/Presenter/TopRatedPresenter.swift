@@ -1,12 +1,14 @@
 import Foundation
 import MovieDBData
 import MovieDBUI
+import UIKit
 
 struct LoadedTopRated: Equatable {
     let currentPage: Int
     let totalPages: Int
     let totalResults: Int
     let movies: [Movie]
+    let watchlistIds: Set<Int>
 
     var hasMoreItems: Bool {
         currentPage < totalPages
@@ -39,6 +41,11 @@ protocol TopRatedPresenterProtocol {
 
 final class TopRatedPresenter: TopRatedPresenterProtocol {
     weak var view: TopRatedPresentable?
+    private let uiAssets: MovieDBUIAssetsProtocol
+
+    init(uiAssets: MovieDBUIAssetsProtocol) {
+        self.uiAssets = uiAssets
+    }
 
     func present(state: TopRatedState) async {
         switch state {
@@ -47,11 +54,18 @@ final class TopRatedPresenter: TopRatedPresenterProtocol {
         case let .loaded(topRated):
             let movies: [MovieCollectionViewModel] = topRated.movies.enumerated().map { index, movie in
                 let posterURL = movie.posterPath.isEmpty ? nil : URL(string: "\(Constants.posterBaseURL)\(movie.posterPath)")
+                let isInWatchlist = topRated.watchlistIds.contains(movie.id)
+                let watchlistTintColor: UIColor = isInWatchlist ? .systemPink : .white
+                let watchlistIcon = isInWatchlist ? uiAssets.heartFilledIcon : uiAssets.heartIcon
                 return MovieCollectionViewModel(
                     id: "\(movie.id)-\(index)",
                     title: movie.title,
                     subtitle: movie.releaseDate ?? "",
-                    posterURL: posterURL
+                    posterURL: posterURL,
+                    watchlistIcon: watchlistIcon,
+                    watchlistSelectedIcon: nil,
+                    watchlistTintColor: watchlistTintColor,
+                    isInWatchlist: isInWatchlist
                 )
             }
             view?.displayTitle(Constants.title(topRatedCount: movies.count))

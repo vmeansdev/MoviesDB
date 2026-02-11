@@ -49,7 +49,7 @@ private struct Environment {
     @MainActor
     static func make() -> Environment {
         let view = MockPopularView()
-        let presenter = PopularPresenter()
+        let presenter = PopularPresenter(uiAssets: MovieDBUIAssets.system)
         presenter.view = view
 
         let movies = [
@@ -86,7 +86,7 @@ private struct Environment {
                 voteCount: 2
             )
         ]
-        let loaded = LoadedPopular(currentPage: 1, totalPages: 1, totalResults: 2, movies: movies)
+        let loaded = LoadedPopular(currentPage: 1, totalPages: 1, totalResults: 2, movies: movies, watchlistIds: [])
         let title = String(format: String.localizable.popularCountTitle, movies.count)
         return Environment(sut: presenter, view: view, loadedPopular: loaded, expectedTitle: title)
     }

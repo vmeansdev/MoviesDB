@@ -6,6 +6,7 @@ protocol TopRatedInteractorProtocol: Actor {
     func viewDidLoad() async
     func viewWillUnload() async
     func didSelect(item: Int) async
+    func didToggleWatchlist(item: Int) async
     func loadMore() async
     func canLoadMore(item: Int) async -> Bool
 }
@@ -18,25 +19,35 @@ protocol TopRatedInteractorOutput: AnyObject {
 actor TopRatedInteractor: TopRatedInteractorProtocol {
     private let presenter: TopRatedPresenterProtocol
     private let service: MoviesServiceProtocol
+    private let watchlistStore: WatchlistStoreProtocol
     private let output: TopRatedInteractorOutput
     private let language: String
     private(set) var currentTask: Task<Void, Never>?
-    private(set) var topRated = LoadedTopRated(currentPage: 0, totalPages: 1, totalResults: 0, movies: [])
+    private(set) var watchlistTask: Task<Void, Never>?
+    private(set) var topRated = LoadedTopRated(currentPage: 0, totalPages: 1, totalResults: 0, movies: [], watchlistIds: [])
+    private(set) var watchlistIds: Set<Int> = []
     private(set) var isLoading = false
 
     init(
         presenter: TopRatedPresenterProtocol,
         service: MoviesServiceProtocol,
+        watchlistStore: WatchlistStoreProtocol,
         output: TopRatedInteractorOutput,
         language: String = Locale.current.language.languageCode?.identifier ?? Constants.en
     ) {
         self.presenter = presenter
         self.service = service
+        self.watchlistStore = watchlistStore
         self.output = output
         self.language = language
     }
 
+    deinit {
+        watchlistTask?.cancel()
+    }
+
     func viewDidLoad() async {
+        startWatchlistObservationIfNeeded()
         loadNextPage()
     }
 
@@ -47,6 +58,11 @@ actor TopRatedInteractor: TopRatedInteractorProtocol {
     func didSelect(item: Int) async {
         guard let movie = await topRated.movies[safe: item] else { return }
         await output.didSelect(movie: movie)
+    }
+
+    func didToggleWatchlist(item: Int) async {
+        guard let movie = await topRated.movies[safe: item] else { return }
+        await watchlistStore.toggle(movie: movie)
     }
 
     func loadMore() async {
@@ -83,7 +99,8 @@ actor TopRatedInteractor: TopRatedInteractorProtocol {
                 currentPage: response.page,
                 totalPages: response.totalPages,
                 totalResults: response.totalResults,
-                movies: topRated.movies + response.results
+                movies: topRated.movies + response.results,
+                watchlistIds: watchlistIds
             )
             topRated = updated
             await presenter.present(state: .loaded(updated))
@@ -124,7 +141,8 @@ actor TopRatedInteractor: TopRatedInteractorProtocol {
                 currentPage: currentPage,
                 totalPages: totalPages,
                 totalResults: totalResults,
-                movies: movies
+                movies: movies,
+                watchlistIds: watchlistIds
             )
             topRated = updated
             await presenter.present(state: .loaded(updated))
@@ -139,6 +157,29 @@ actor TopRatedInteractor: TopRatedInteractorProtocol {
 
     private func fetchPage(page: Int) async throws -> MovieList {
         try await service.fetchTopRated(options: .init(page: page, language: language))
+    }
+
+    private func startWatchlistObservationIfNeeded() {
+        guard watchlistTask == nil else { return }
+        watchlistTask = Task {
+            let stream = await watchlistStore.itemsStream()
+            for await items in stream {
+                await updateWatchlist(items: items)
+            }
+        }
+    }
+
+    private func updateWatchlist(items: [Movie]) async {
+        watchlistIds = Set(items.map(\.id))
+        let updated = LoadedTopRated(
+            currentPage: topRated.currentPage,
+            totalPages: topRated.totalPages,
+            totalResults: topRated.totalResults,
+            movies: topRated.movies,
+            watchlistIds: watchlistIds
+        )
+        topRated = updated
+        await presenter.present(state: .loaded(updated))
     }
 }
 

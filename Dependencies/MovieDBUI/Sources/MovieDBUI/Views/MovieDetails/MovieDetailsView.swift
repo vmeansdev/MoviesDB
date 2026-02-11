@@ -1,8 +1,9 @@
 import Kingfisher
 import SwiftUI
+import UIKit
 
 public struct MovieDetailsView: View {
-    @ObservedObject private var viewModel: MovieDetailsViewModel
+    @Bindable private var viewModel: MovieDetailsViewModel
 
     public init(viewModel: MovieDetailsViewModel) {
         self.viewModel = viewModel
@@ -42,6 +43,11 @@ public struct MovieDetailsView: View {
         .frame(maxWidth: .infinity)
         .aspectRatio(16.0 / 9.0, contentMode: .fit)
         .clipped()
+        .overlay(alignment: .bottomTrailing) {
+            if watchlistIcon != nil {
+                watchlistButton
+            }
+        }
     }
 
     @ViewBuilder
@@ -74,6 +80,29 @@ public struct MovieDetailsView: View {
         }
         .padding(.horizontal, 16)
         .padding(.top, 8)
+    }
+
+    private var watchlistButton: some View {
+        Button {
+            Task { await viewModel.toggleWatchlist() }
+        } label: {
+            if let icon = watchlistIcon {
+                Image(uiImage: icon)
+                    .renderingMode(.template)
+                    .foregroundColor(Color(viewModel.watchlistTintColor))
+                    .padding(10)
+                    .background(Color.black.opacity(0.35))
+                    .clipShape(Circle())
+            }
+        }
+        .padding(16)
+    }
+
+    private var watchlistIcon: UIImage? {
+        if viewModel.isInWatchlist {
+            return viewModel.watchlistFilledIcon ?? viewModel.watchlistIcon
+        }
+        return viewModel.watchlistIcon
     }
 
     private var overviewSection: some View {

@@ -59,6 +59,7 @@ private struct Environment {
     let sut: TopRatedInteractor
     let presenter: MockTopRatedPresenter
     let service: MockMoviesService
+    let watchlistStore: MockWatchlistStore
     let output: MockTopRatedInteractorOutput
 
     let movie1 = Movie(
@@ -110,9 +111,22 @@ private struct Environment {
     static func make() -> Environment {
         let presenter = MockTopRatedPresenter()
         let service = MockMoviesService()
+        let watchlistStore = MockWatchlistStore()
         let output = MockTopRatedInteractorOutput()
-        let interactor = TopRatedInteractor(presenter: presenter, service: service, output: output, language: "en")
-        var environment = Environment(sut: interactor, presenter: presenter, service: service, output: output)
+        let interactor = TopRatedInteractor(
+            presenter: presenter,
+            service: service,
+            watchlistStore: watchlistStore,
+            output: output,
+            language: "en"
+        )
+        var environment = Environment(
+            sut: interactor,
+            presenter: presenter,
+            service: service,
+            watchlistStore: watchlistStore,
+            output: output
+        )
         environment.service.fetchTopRatedResult = .success(environment.page1)
         return environment
     }

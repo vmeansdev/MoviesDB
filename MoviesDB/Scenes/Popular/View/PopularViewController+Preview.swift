@@ -1,5 +1,6 @@
 #if DEBUG
 import MovieDBData
+import MovieDBUI
 import SwiftUI
 import UIKit
 
@@ -53,9 +54,25 @@ private final class MockOutput: PopularInteractorOutput {
     }
 }
 
+private actor MockWatchlistStore: WatchlistStoreProtocol {
+    func items() async -> [Movie] { [] }
+    func itemsStream() async -> AsyncStream<[Movie]> {
+        AsyncStream { $0.yield([]) }
+    }
+    func isInWatchlist(id: Int) async -> Bool { false }
+    func add(movie: Movie) async { }
+    func remove(id: Int) async { }
+    func toggle(movie: Movie) async { }
+}
+
 #Preview {
     UINavigationController(
-        rootViewController: PopularViewController.build(moviesService: MockMoviesService(), output: MockOutput())
+        rootViewController: PopularViewController.build(
+            moviesService: MockMoviesService(),
+            watchlistStore: MockWatchlistStore(),
+            uiAssets: MovieDBUIAssets.system,
+            output: MockOutput()
+        )
     )
 }
 #endif

@@ -1,5 +1,6 @@
 #if DEBUG
 import SwiftUI
+import UIKit
 
 #Preview {
     UIViewPreview {
@@ -15,7 +16,11 @@ extension MovieCollectionViewCell {
             id: "1",
             title: "The Great Expedition",
             subtitle: "2026 • Adventure",
-            posterURL: URL(fileURLWithPath: Bundle.module.path(forResource: "pup", ofType: "jpg")!)
+            posterURL: URL(fileURLWithPath: Bundle.module.path(forResource: "pup", ofType: "jpg")!),
+            watchlistIcon: UIImage(systemName: "heart"),
+            watchlistSelectedIcon: nil,
+            watchlistTintColor: .systemPink,
+            isInWatchlist: false
         )
 
         public static func viewModel(with id: String) -> MovieCollectionViewModel {
@@ -23,7 +28,11 @@ extension MovieCollectionViewCell {
                 id: id,
                 title: viewModel.title,
                 subtitle: viewModel.subtitle,
-                posterURL: viewModel.posterURL
+                posterURL: viewModel.posterURL,
+                watchlistIcon: viewModel.watchlistIcon,
+                watchlistSelectedIcon: viewModel.watchlistSelectedIcon,
+                watchlistTintColor: viewModel.watchlistTintColor,
+                isInWatchlist: viewModel.isInWatchlist
             )
         }
     }

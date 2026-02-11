@@ -34,6 +34,39 @@
         }
       }
     },
+    "tabitem_watchlist_title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Watchlist"
+          }
+        }
+      }
+    },
+    "watchlist_empty_title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your watchlist is empty"
+          }
+        }
+      }
+    },
+    "watchlist_empty_subtitle" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add something you'd like to watch by pressing the like button on a movie."
+          }
+        }
+      }
+    },
     "movie_details_language_label" : {
       "extractionState" : "stale",
       "localizations" : {

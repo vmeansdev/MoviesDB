@@ -24,7 +24,7 @@ struct MovieDetailsViewModelTests {
             voteCount: 505
         )
 
-        let sut = MovieDetailsViewModel(movie: movie, moviesService: nil)
+        let sut = MovieDetailsViewModel(movie: movie, moviesService: nil, watchlistStore: nil, uiAssets: nil)
         let content = sut.content
 
         #expect(content.title == "Movie Title")
@@ -75,7 +75,7 @@ struct MovieDetailsViewModelTests {
             )
         )
 
-        let sut = MovieDetailsViewModel(movie: movie, moviesService: service)
+        let sut = MovieDetailsViewModel(movie: movie, moviesService: service, watchlistStore: nil, uiAssets: nil)
         await sut.loadDetailsIfNeeded()
         let content = sut.content
 
@@ -106,7 +106,7 @@ struct MovieDetailsViewModelTests {
             voteCount: 10
         )
         let service = MockMoviesService()
-        let sut = MovieDetailsViewModel(movie: movie, moviesService: service)
+        let sut = MovieDetailsViewModel(movie: movie, moviesService: service, watchlistStore: nil, uiAssets: nil)
 
         await sut.loadDetailsIfNeeded()
         await sut.loadDetailsIfNeeded()

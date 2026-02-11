@@ -4,6 +4,7 @@ actor MockPopularInteractor: PopularInteractorProtocol {
     private(set) var viewDidLoadCalls = 0
     private(set) var viewWillUnloadCalls = 0
     private(set) var didSelectCalls: [Int] = []
+    private(set) var didToggleWatchlistCalls: [Int] = []
     private(set) var loadMoreCalls = 0
     var canLoadMoreResult = false
 
@@ -17,6 +18,10 @@ actor MockPopularInteractor: PopularInteractorProtocol {
 
     func didSelect(item: Int) async {
         didSelectCalls.append(item)
+    }
+
+    func didToggleWatchlist(item: Int) async {
+        didToggleWatchlistCalls.append(item)
     }
 
     func loadMore() async {

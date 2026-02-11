@@ -6,6 +6,7 @@ protocol PopularInteractorProtocol: Actor {
     func viewDidLoad() async
     func viewWillUnload() async
     func didSelect(item: Int) async
+    func didToggleWatchlist(item: Int) async
     func loadMore() async
     func canLoadMore(item: Int) async -> Bool
 }
@@ -18,25 +19,35 @@ protocol PopularInteractorOutput: AnyObject {
 actor PopularInteractor: PopularInteractorProtocol {
     private let presenter: PopularPresenterProtocol
     private let service: MoviesServiceProtocol
+    private let watchlistStore: WatchlistStoreProtocol
     private let output: PopularInteractorOutput
     private let language: String
     private(set) var currentTask: Task<Void, Never>?
-    private(set) var popular = LoadedPopular(currentPage: 0, totalPages: 1, totalResults: 0, movies: [])
+    private(set) var watchlistTask: Task<Void, Never>?
+    private(set) var popular = LoadedPopular(currentPage: 0, totalPages: 1, totalResults: 0, movies: [], watchlistIds: [])
+    private(set) var watchlistIds: Set<Int> = []
     private(set) var isLoading = false
 
     init(
         presenter: PopularPresenterProtocol,
         service: MoviesServiceProtocol,
+        watchlistStore: WatchlistStoreProtocol,
         output: PopularInteractorOutput,
         language: String = Locale.current.language.languageCode?.identifier ?? Constants.en
     ) {
         self.presenter = presenter
         self.service = service
+        self.watchlistStore = watchlistStore
         self.output = output
         self.language = language
     }
 
+    deinit {
+        watchlistTask?.cancel()
+    }
+
     func viewDidLoad() async {
+        startWatchlistObservationIfNeeded()
         loadNextPage()
     }
 
@@ -49,6 +60,11 @@ actor PopularInteractor: PopularInteractorProtocol {
             return
         }
         await output.didSelect(movie: movie)
+    }
+
+    func didToggleWatchlist(item: Int) async {
+        guard let movie = popular.movies[safe: item] else { return }
+        await watchlistStore.toggle(movie: movie)
     }
 
     func loadMore() async {
@@ -85,7 +101,8 @@ actor PopularInteractor: PopularInteractorProtocol {
                 currentPage: response.page,
                 totalPages: response.totalPages,
                 totalResults: response.totalResults,
-                movies: popular.movies + response.results
+                movies: popular.movies + response.results,
+                watchlistIds: watchlistIds
             )
             popular = updated
             await presenter.present(state: .loaded(updated))
@@ -126,7 +143,8 @@ actor PopularInteractor: PopularInteractorProtocol {
                 currentPage: currentPage,
                 totalPages: totalPages,
                 totalResults: totalResults,
-                movies: movies
+                movies: movies,
+                watchlistIds: watchlistIds
             )
             popular = updated
             await presenter.present(state: .loaded(updated))
@@ -141,6 +159,29 @@ actor PopularInteractor: PopularInteractorProtocol {
 
     private func fetchPage(page: Int) async throws -> MovieList {
         try await service.fetchPopular(options: .init(page: page, language: language))
+    }
+
+    private func startWatchlistObservationIfNeeded() {
+        guard watchlistTask == nil else { return }
+        watchlistTask = Task {
+            let stream = await watchlistStore.itemsStream()
+            for await items in stream {
+                await updateWatchlist(items: items)
+            }
+        }
+    }
+
+    private func updateWatchlist(items: [Movie]) async {
+        watchlistIds = Set(items.map(\.id))
+        let updated = LoadedPopular(
+            currentPage: popular.currentPage,
+            totalPages: popular.totalPages,
+            totalResults: popular.totalResults,
+            movies: popular.movies,
+            watchlistIds: watchlistIds
+        )
+        popular = updated
+        await presenter.present(state: .loaded(updated))
     }
 }
 

@@ -4,11 +4,13 @@ import MovieDBUI
 final class MockDependenciesProvider: DependenciesProviderProtocol {
     let coordinatorProvider: CoordinatorProviderProtocol
     let serviceProvider: ServiceProviderProtocol
-    let uiAssets: MovieDBUIAssetsProtocol
+    let assetsProvider: AssetsProviderProtocol
+    let storeProvider: StoreProviderProtocol
 
     init() {
         serviceProvider = MockServiceProvider(moviesService: MockMoviesService())
         coordinatorProvider = MockCoordinatorProvider()
-        uiAssets = MovieDBUIAssets.system
+        assetsProvider = AssetsProvider(uiAssets: MovieDBUIAssets.system)
+        storeProvider = StoreProvider(watchlistStore: MockWatchlistStore())
     }
 }

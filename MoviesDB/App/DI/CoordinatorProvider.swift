@@ -7,6 +7,7 @@ protocol CoordinatorProviderProtocol {
     func rootCoordinator() -> Coordinator
     func popularCoordinator() -> Coordinator
     func topRatedCoordinator() -> Coordinator
+    func watchlistCoordinator() -> Coordinator
     func movieDetailsCoordinator(rootViewController: UINavigationController, movie: Movie) -> Coordinator
     func allCoordinators() -> [Coordinator]
 }
@@ -16,10 +17,12 @@ final class CoordinatorProvider: CoordinatorProviderProtocol {
     private let serviceProvider: ServiceProviderProtocol
     private let windowConfigurator: WindowConfiguratorProtocol
     private let appearanceConfigurator: AppAppearanceConfiguratorProtocol
-    private let uiAssets: MovieDBUIAssetsProtocol
+    private let assetsProvider: AssetsProviderProtocol
+    private let storeProvider: StoreProviderProtocol
     private let dependenciesProvider: DependenciesProviderProtocol
     private lazy var popularStack: CoordinatorStack = makePopularStack()
     private lazy var topRatedStack: CoordinatorStack = makeTopRatedStack()
+    private lazy var watchlistStack: CoordinatorStack = makeWatchlistStack()
     private lazy var root: Coordinator = makeRootCoordinator()
 
     init(
@@ -27,14 +30,16 @@ final class CoordinatorProvider: CoordinatorProviderProtocol {
         serviceProvider: ServiceProviderProtocol,
         windowConfigurator: WindowConfiguratorProtocol,
         appearanceConfigurator: AppAppearanceConfiguratorProtocol,
-        uiAssets: MovieDBUIAssetsProtocol,
+        assetsProvider: AssetsProviderProtocol,
+        storeProvider: StoreProviderProtocol,
         dependenciesProvider: DependenciesProviderProtocol
     ) {
         self.window = window
         self.serviceProvider = serviceProvider
         self.windowConfigurator = windowConfigurator
         self.appearanceConfigurator = appearanceConfigurator
-        self.uiAssets = uiAssets
+        self.assetsProvider = assetsProvider
+        self.storeProvider = storeProvider
         self.dependenciesProvider = dependenciesProvider
     }
 
@@ -50,6 +55,10 @@ final class CoordinatorProvider: CoordinatorProviderProtocol {
         topRatedStack.coordinator
     }
 
+    func watchlistCoordinator() -> Coordinator {
+        watchlistStack.coordinator
+    }
+
     func movieDetailsCoordinator(rootViewController: UINavigationController, movie: Movie) -> Coordinator {
         MovieDetailsCoordinator(
             rootViewController: rootViewController,
@@ -59,7 +68,7 @@ final class CoordinatorProvider: CoordinatorProviderProtocol {
     }
 
     func allCoordinators() -> [Coordinator] {
-        [root, popularStack.coordinator, topRatedStack.coordinator]
+        [root, popularStack.coordinator, topRatedStack.coordinator, watchlistStack.coordinator]
     }
 }
 
@@ -79,6 +88,11 @@ private extension CoordinatorProvider {
                 id: TabItemId.topRated,
                 viewController: topRatedStack.navigationController,
                 coordinator: topRatedStack.coordinator
+            ),
+            TabItemConfig(
+                id: TabItemId.watchlist,
+                viewController: watchlistStack.navigationController,
+                coordinator: watchlistStack.coordinator
             )
         ]
 
@@ -96,13 +110,15 @@ private extension CoordinatorProvider {
         let navigationController = UINavigationController()
         navigationController.tabBarItem = UITabBarItem(
             title: String.localizable.tabPopularTitle,
-            image: uiAssets.popularTabIcon,
-            selectedImage: uiAssets.popularTabSelectedIcon
+            image: assetsProvider.uiAssets.popularTabIcon,
+            selectedImage: assetsProvider.uiAssets.popularTabSelectedIcon
         )
         let coordinator = PopularCoordinator(
             rootViewController: navigationController,
             serviceProvider: serviceProvider,
-            coordinatorProvider: self
+            coordinatorProvider: self,
+            watchlistStore: storeProvider.watchlistStore,
+            uiAssets: assetsProvider.uiAssets
         )
         return (navigationController, coordinator)
     }
@@ -111,12 +127,29 @@ private extension CoordinatorProvider {
         let navigationController = UINavigationController()
         navigationController.tabBarItem = UITabBarItem(
             title: String.localizable.tabTopRatedTitle,
-            image: uiAssets.topRatedTabIcon,
-            selectedImage: uiAssets.topRatedTabSelectedIcon
+            image: assetsProvider.uiAssets.topRatedTabIcon,
+            selectedImage: assetsProvider.uiAssets.topRatedTabSelectedIcon
         )
         let coordinator = TopRatedCoordinator(
             rootViewController: navigationController,
             serviceProvider: serviceProvider,
+            coordinatorProvider: self,
+            watchlistStore: storeProvider.watchlistStore,
+            uiAssets: assetsProvider.uiAssets
+        )
+        return (navigationController, coordinator)
+    }
+
+    func makeWatchlistStack() -> CoordinatorStack {
+        let navigationController = UINavigationController()
+        navigationController.tabBarItem = UITabBarItem(
+            title: String.localizable.tabWatchlistTitle,
+            image: assetsProvider.uiAssets.watchlistTabIcon,
+            selectedImage: assetsProvider.uiAssets.watchlistTabSelectedIcon
+        )
+        let coordinator = WatchlistCoordinator(
+            rootViewController: navigationController,
+            dependenciesProvider: dependenciesProvider,
             coordinatorProvider: self
         )
         return (navigationController, coordinator)

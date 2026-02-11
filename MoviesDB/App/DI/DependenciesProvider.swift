@@ -6,7 +6,8 @@ import UIKit
 protocol DependenciesProviderProtocol {
     var coordinatorProvider: CoordinatorProviderProtocol { get }
     var serviceProvider: ServiceProviderProtocol { get }
-    var uiAssets: MovieDBUIAssetsProtocol { get }
+    var assetsProvider: AssetsProviderProtocol { get }
+    var storeProvider: StoreProviderProtocol { get }
 }
 
 final class DependenciesProvider: DependenciesProviderProtocol {
@@ -15,11 +16,13 @@ final class DependenciesProvider: DependenciesProviderProtocol {
         serviceProvider: serviceProvider,
         windowConfigurator: windowConfigurator,
         appearanceConfigurator: appearanceConfigurator,
-        uiAssets: uiAssets,
+        assetsProvider: assetsProvider,
+        storeProvider: storeProvider,
         dependenciesProvider: self
     )
     let serviceProvider: ServiceProviderProtocol
-    let uiAssets: MovieDBUIAssetsProtocol
+    let assetsProvider: AssetsProviderProtocol
+    let storeProvider: StoreProviderProtocol
     private let window: UIWindow?
     private let windowConfigurator: WindowConfiguratorProtocol
     private let appearanceConfigurator: AppAppearanceConfiguratorProtocol
@@ -32,7 +35,8 @@ final class DependenciesProvider: DependenciesProviderProtocol {
         self.window = window
         self.windowConfigurator = windowConfigurator
         self.appearanceConfigurator = appearanceConfigurator
-        uiAssets = MovieDBUIAssets.system
         serviceProvider = ServiceProvider(apiKey: Environment.apiKey, httpClient: HttpClient(baseURL: Environment.baseURLString))
+        assetsProvider = AssetsProvider()
+        storeProvider = StoreProvider()
     }
 }

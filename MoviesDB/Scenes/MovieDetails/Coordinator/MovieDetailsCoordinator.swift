@@ -16,7 +16,9 @@ final class MovieDetailsCoordinator: Coordinator {
     func start() {
         let viewModel = MovieDetailsViewModel(
             movie: movie,
-            moviesService: dependenciesProvider.serviceProvider.moviesService
+            moviesService: dependenciesProvider.serviceProvider.moviesService,
+            watchlistStore: dependenciesProvider.storeProvider.watchlistStore,
+            uiAssets: dependenciesProvider.assetsProvider.uiAssets
         )
         let view = MovieDetailsView(viewModel: viewModel)
         let viewController = MovieDetailsViewController(with: view)
