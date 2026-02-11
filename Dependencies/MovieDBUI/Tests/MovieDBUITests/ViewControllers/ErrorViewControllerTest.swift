@@ -1,6 +1,7 @@
 @testable import MovieDBUI
 import SnapshotTesting
 import Testing
+import UIKit
 
 struct ErrorViewControllerTests {
     @Test

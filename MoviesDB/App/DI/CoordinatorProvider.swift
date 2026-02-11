@@ -1,3 +1,4 @@
+import MovieDBData
 import MovieDBUI
 import UIKit
 
@@ -6,6 +7,7 @@ protocol CoordinatorProviderProtocol {
     func rootCoordinator() -> Coordinator
     func popularCoordinator() -> Coordinator
     func topRatedCoordinator() -> Coordinator
+    func movieDetailsCoordinator(rootViewController: UINavigationController, movie: Movie) -> Coordinator
     func allCoordinators() -> [Coordinator]
 }
 
@@ -43,6 +45,10 @@ final class CoordinatorProvider: CoordinatorProviderProtocol {
 
     func topRatedCoordinator() -> Coordinator {
         topRatedStack.coordinator
+    }
+
+    func movieDetailsCoordinator(rootViewController: UINavigationController, movie: Movie) -> Coordinator {
+        MovieDetailsCoordinator(rootViewController: rootViewController, movie: movie)
     }
 
     func allCoordinators() -> [Coordinator] {

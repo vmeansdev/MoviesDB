@@ -1,4 +1,5 @@
 import MovieDBData
+import MovieDBUI
 import UIKit
 
 final class TopRatedCoordinator: Coordinator {
@@ -24,6 +25,10 @@ final class TopRatedCoordinator: Coordinator {
 
 extension TopRatedCoordinator: TopRatedInteractorOutput {
     func didSelect(movie: Movie) {
-        // TODO: push details when details scene is available
+        let coordinator = coordinatorProvider.movieDetailsCoordinator(
+            rootViewController: rootViewController,
+            movie: movie
+        )
+        coordinator.start()
     }
 }

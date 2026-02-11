@@ -1,3 +1,5 @@
+import MovieDBData
+import UIKit
 @testable import MoviesDB
 
 @MainActor
@@ -14,6 +16,7 @@ final class MockCoordinatorProvider: CoordinatorProviderProtocol {
     let root = MockCoordinator()
     let popular = MockCoordinator()
     let topRated = MockCoordinator()
+    private(set) var movieDetailsCoordinatorMovie: Movie?
 
     func rootCoordinator() -> Coordinator {
         root
@@ -25,6 +28,11 @@ final class MockCoordinatorProvider: CoordinatorProviderProtocol {
 
     func topRatedCoordinator() -> Coordinator {
         topRated
+    }
+
+    func movieDetailsCoordinator(rootViewController: UINavigationController, movie: Movie) -> Coordinator {
+        movieDetailsCoordinatorMovie = movie
+        return MockCoordinator()
     }
 
     func allCoordinators() -> [Coordinator] {

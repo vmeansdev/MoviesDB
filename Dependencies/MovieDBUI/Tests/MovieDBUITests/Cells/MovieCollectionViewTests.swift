@@ -1,6 +1,7 @@
 @testable import MovieDBUI
 import SnapshotTesting
 import Testing
+import UIKit
 
 struct MovieCollectionViewTests {
     @Test
