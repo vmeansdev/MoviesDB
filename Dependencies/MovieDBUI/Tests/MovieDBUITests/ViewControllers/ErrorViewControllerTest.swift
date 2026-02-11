@@ -1,9 +1,11 @@
 @testable import MovieDBUI
-import XCTest
 import SnapshotTesting
+import Testing
 
-final class ErrorViewControllerTests: XCTestCase {
-    func test_errorViewController_whenHasRetryAction_showsRetryButtonAndNoClose() {
+struct ErrorViewControllerTests {
+    @Test
+    @MainActor
+    func test_errorViewController_whenHasRetryAction_showsRetryButtonAndNoClose() async {
         let environment = Environment()
         let sut = environment.makeSUT(viewModel: environment.retryViewModel)
         environment.contentSizes.forEach {
@@ -16,7 +18,9 @@ final class ErrorViewControllerTests: XCTestCase {
         }
     }
 
-    func test_errorViewController_whenDoesntHaveRetryAction_showsCloseButtonAndNoRetry() {
+    @Test
+    @MainActor
+    func test_errorViewController_whenDoesntHaveRetryAction_showsCloseButtonAndNoRetry() async {
         let environment = Environment()
         let sut = environment.makeSUT(viewModel: environment.closeViewModel)
         environment.contentSizes.forEach {

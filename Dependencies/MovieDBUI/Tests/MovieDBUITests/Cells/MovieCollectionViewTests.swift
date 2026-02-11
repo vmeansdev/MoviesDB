@@ -1,9 +1,11 @@
 @testable import MovieDBUI
-import XCTest
 import SnapshotTesting
+import Testing
 
-final class MovieCollectionViewTests: XCTestCase {
-    func test_movieCollectionViewCell_whenConfigured_thenDisplaysMovie() {
+struct MovieCollectionViewTests {
+    @Test
+    @MainActor
+    func test_movieCollectionViewCell_whenConfigured_thenDisplaysMovie() async {
         let environment = Environment()
         let size = CGSize(width: UIScreen.main.bounds.width, height: 250.0)
         let sut = environment.createSUT(size)
