@@ -28,7 +28,7 @@ jobs:
           set -euo pipefail
           xcodebuild \
             -scheme MoviesDB \
-            -destination 'platform=iOS Simulator,OS=latest,name=iPhone 15 Pro' \
+            -destination 'platform=iOS Simulator,OS=latest,name=iPhone 17 Pro' \
             -derivedDataPath /tmp/DerivedData \
             test
 
@@ -37,7 +37,7 @@ jobs:
           set -euo pipefail
           SNAPSHOT_TESTING_RECORD=0 xcodebuild \
             -scheme MovieDBUI \
-            -destination 'platform=iOS Simulator,OS=latest,name=iPhone 15 Pro' \
+            -destination 'platform=iOS Simulator,OS=latest,name=iPhone 17 Pro' \
             -derivedDataPath /tmp/DerivedData \
             test
 
@@ -46,6 +46,6 @@ jobs:
           set -euo pipefail
           xcodebuild \
             -scheme MovieDBData \
-            -destination 'platform=iOS Simulator,OS=latest,name=iPhone 15 Pro' \
+            -destination 'platform=iOS Simulator,OS=latest,name=iPhone 17 Pro' \
             -derivedDataPath /tmp/DerivedData \
             test
