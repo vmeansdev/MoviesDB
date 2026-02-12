@@ -1,6 +1,7 @@
 import SwiftUI
 
 #Preview {
+    let pupURL = Bundle.module.url(forResource: "pup", withExtension: "jpg")
     MovieDetailsView(
         viewModel: MovieDetailsViewModel(
             content: MovieDetailsContent(
@@ -13,8 +14,8 @@ import SwiftUI
                     MovieDetailsMetadataItem(id: "votes", title: "Votes", value: "12,540"),
                     MovieDetailsMetadataItem(id: "originalTitle", title: "Original title", value: "The Example Movie")
                 ],
-                posterURL: URL(string: "https://image.tmdb.org/t/p/w500/8FHOtUpNIk5ZPEay2N2EY5lrxkv.jpg"),
-                backdropURL: URL(string: "https://image.tmdb.org/t/p/w780/8FHOtUpNIk5ZPEay2N2EY5lrxkv.jpg")
+                posterURL: pupURL,
+                backdropURL: pupURL
             )
         )
     )

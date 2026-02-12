@@ -23,6 +23,7 @@ struct PopularCoordinatorTests {
 
         sut.start()
 
-        #expect(navigationController.viewControllers.first is PopularViewController)
+        let didSetRoot = await waitUntil { navigationController.viewControllers.first is PopularViewController }
+        #expect(didSetRoot)
     }
 }

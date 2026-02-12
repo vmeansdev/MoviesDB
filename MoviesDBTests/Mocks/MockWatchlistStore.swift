@@ -1,3 +1,4 @@
+import Foundation
 import MovieDBData
 @testable import MoviesDB
 

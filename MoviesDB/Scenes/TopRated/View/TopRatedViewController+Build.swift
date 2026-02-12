@@ -9,7 +9,8 @@ extension TopRatedViewController {
         uiAssets: MovieDBUIAssetsProtocol,
         output: TopRatedInteractorOutput
     ) -> UIViewController {
-        let presenter = TopRatedPresenter(uiAssets: uiAssets)
+        let mapper = MovieListViewModelMapper(uiAssets: uiAssets)
+        let presenter = TopRatedPresenter(mapper: mapper)
         let interactor = TopRatedInteractor(
             presenter: presenter,
             service: moviesService,

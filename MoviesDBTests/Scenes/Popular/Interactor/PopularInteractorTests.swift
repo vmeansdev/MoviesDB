@@ -13,14 +13,15 @@ struct PopularInteractorTests {
         }
 
         await environment.sut.viewDidLoad()
-        try await Task.sleep(for: .milliseconds(10))
+        let didFetch = await waitUntil { environment.service.fetchPopularCalls.count >= 2 }
+        #expect(didFetch)
 
         let calls = environment.service.fetchPopularCalls
         #expect(calls.count == 2)
         #expect(calls[0].page == 1)
         #expect(calls[1].page == 2)
 
-        let states = environment.presenter.states
+        let states = await MainActor.run { environment.presenter.states }
         let loadedStates = states.compactMap { state -> LoadedPopular? in
             if case let .loaded(value) = state { return value }
             return nil
@@ -34,7 +35,15 @@ struct PopularInteractorTests {
         environment.service.fetchPopularHandler = { _ in environment.page1 }
 
         await environment.sut.viewDidLoad()
-        try? await Task.sleep(for: .milliseconds(10))
+        let didLoad = await waitUntil {
+            await MainActor.run {
+                environment.presenter.states.contains { state in
+                    if case .loaded = state { return true }
+                    return false
+                }
+            }
+        }
+        #expect(didLoad)
 
         await environment.sut.didSelect(item: 0)
         let selected = environment.output.selectedMovies
@@ -48,7 +57,8 @@ struct PopularInteractorTests {
         environment.service.fetchPopularHandler = { _ in environment.noMoreItemsPage }
 
         await environment.sut.viewDidLoad()
-        try? await Task.sleep(for: .milliseconds(10))
+        let didFetch = await waitUntil { environment.service.fetchPopularCalls.count >= 1 }
+        #expect(didFetch)
 
         await environment.sut.loadMore()
         let calls = environment.service.fetchPopularCalls

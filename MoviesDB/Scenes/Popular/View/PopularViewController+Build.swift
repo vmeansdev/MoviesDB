@@ -9,7 +9,8 @@ extension PopularViewController {
         uiAssets: MovieDBUIAssetsProtocol,
         output: PopularInteractorOutput
     ) -> UIViewController {
-        let presenter = PopularPresenter(uiAssets: uiAssets)
+        let mapper = MovieListViewModelMapper(uiAssets: uiAssets)
+        let presenter = PopularPresenter(mapper: mapper)
         let interactor = PopularInteractor(
             presenter: presenter,
             service: moviesService,

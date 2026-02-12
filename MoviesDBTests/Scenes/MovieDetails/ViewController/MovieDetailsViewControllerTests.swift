@@ -1,4 +1,5 @@
 import MovieDBUI
+import SwiftUI
 import Testing
 @testable import MoviesDB
 
@@ -18,7 +19,7 @@ struct MovieDetailsViewControllerTests {
             )
         )
         let rootView = MovieDetailsView(viewModel: viewModel)
-        let sut = MovieDetailsViewController(rootView: rootView)
+        let sut = MovieDetailsViewController(with: rootView)
 
         #expect(sut.rootView is MovieDetailsView)
     }

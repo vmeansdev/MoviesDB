@@ -1,4 +1,5 @@
 import UIKit
+import MovieDBUI
 import Testing
 @testable import MoviesDB
 
@@ -10,7 +11,8 @@ struct TopRatedViewControllerTests {
         let sut = TopRatedViewController(interactor: interactor)
 
         sut.loadViewIfNeeded()
-        try? await Task.sleep(for: .milliseconds(10))
+        let didCall = await waitUntil { await interactor.viewDidLoadCalls == 1 }
+        #expect(didCall)
 
         let calls = await interactor.viewDidLoadCalls
         #expect(calls == 1)
@@ -24,7 +26,8 @@ struct TopRatedViewControllerTests {
 
         sut.loadViewIfNeeded()
         sut.viewWillDisappear(false)
-        try? await Task.sleep(for: .milliseconds(10))
+        let didCall = await waitUntil { await interactor.viewWillUnloadCalls == 1 }
+        #expect(didCall)
 
         let calls = await interactor.viewWillUnloadCalls
         #expect(calls == 1)

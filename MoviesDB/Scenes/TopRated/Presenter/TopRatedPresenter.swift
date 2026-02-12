@@ -3,7 +3,7 @@ import MovieDBData
 import MovieDBUI
 import UIKit
 
-struct LoadedTopRated: Equatable {
+struct LoadedTopRated: Equatable, MovieListLoadedState {
     let currentPage: Int
     let totalPages: Int
     let totalResults: Int
@@ -41,10 +41,10 @@ protocol TopRatedPresenterProtocol {
 
 final class TopRatedPresenter: TopRatedPresenterProtocol {
     weak var view: MovieListPresentable?
-    private let uiAssets: MovieDBUIAssetsProtocol
+    private let mapper: MovieListViewModelMapper
 
-    init(uiAssets: MovieDBUIAssetsProtocol) {
-        self.uiAssets = uiAssets
+    init(mapper: MovieListViewModelMapper) {
+        self.mapper = mapper
     }
 
     func present(state: TopRatedState) async {
@@ -52,22 +52,7 @@ final class TopRatedPresenter: TopRatedPresenterProtocol {
         case let .loading(isInitial):
             view?.displayLoading(isInitial: isInitial)
         case let .loaded(topRated):
-            let movies: [MovieCollectionViewModel] = topRated.movies.enumerated().map { index, movie in
-                let posterURL = movie.posterPath.isEmpty ? nil : URL(string: "\(Constants.posterBaseURL)\(movie.posterPath)")
-                let isInWatchlist = topRated.watchlistIds.contains(movie.id)
-                let watchlistTintColor: UIColor = isInWatchlist ? .systemPink : .white
-                let watchlistIcon = isInWatchlist ? uiAssets.heartFilledIcon : uiAssets.heartIcon
-                return MovieCollectionViewModel(
-                    id: "\(movie.id)-\(index)",
-                    title: movie.title,
-                    subtitle: movie.releaseDate ?? "",
-                    posterURL: posterURL,
-                    watchlistIcon: watchlistIcon,
-                    watchlistSelectedIcon: nil,
-                    watchlistTintColor: watchlistTintColor,
-                    isInWatchlist: isInWatchlist
-                )
-            }
+            let movies = mapper.makeMovies(from: topRated)
             view?.displayTitle(Constants.title(topRatedCount: movies.count))
             view?.displayMovies(movies)
         case let .error(error, action):
@@ -77,7 +62,6 @@ final class TopRatedPresenter: TopRatedPresenterProtocol {
 }
 
 private enum Constants {
-    static var posterBaseURL: String { "\(Environment.imageBaseURLString)/t/p/w500" }
     static func title(topRatedCount: Int) -> String {
         String(format: String.localizable.topRatedCountTitle, topRatedCount)
     }

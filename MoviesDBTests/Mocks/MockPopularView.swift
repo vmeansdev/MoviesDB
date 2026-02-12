@@ -2,7 +2,7 @@ import MovieDBUI
 @testable import MoviesDB
 
 @MainActor
-final class MockPopularView: PopularPresentable {
+final class MockPopularView: MovieListPresentable {
     private(set) var loadingCalls: [Bool] = []
     private(set) var moviesCalls: [[MovieCollectionViewModel]] = []
     private(set) var errorCalls: [ErrorViewModel] = []

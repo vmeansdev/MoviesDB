@@ -1,3 +1,4 @@
+import MovieDBUI
 import UIKit
 
 final class PopularViewController: MovieListViewController {

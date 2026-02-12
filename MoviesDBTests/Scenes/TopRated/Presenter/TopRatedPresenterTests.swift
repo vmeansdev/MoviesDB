@@ -8,7 +8,7 @@ struct TopRatedPresenterTests {
     @Test
     @MainActor
     func test_presentLoaded_shouldDisplayTitleAndMovies() async {
-        let environment = Environment.make()
+        let environment = await Environment.make()
         let state = TopRatedState.loaded(environment.loadedTopRated)
 
         await environment.sut.present(state: state)
@@ -21,7 +21,7 @@ struct TopRatedPresenterTests {
     @Test
     @MainActor
     func test_presentLoading_shouldDisplayLoading() async {
-        let environment = Environment.make()
+        let environment = await Environment.make()
 
         await environment.sut.present(state: .loading(isInitial: true))
 
@@ -31,7 +31,7 @@ struct TopRatedPresenterTests {
     @Test
     @MainActor
     func test_presentError_shouldDisplayError() async {
-        let environment = Environment.make()
+        let environment = await Environment.make()
         let error = NSError(domain: "test", code: 1)
 
         await environment.sut.present(state: .error(error, nil))
@@ -46,9 +46,11 @@ private struct Environment {
     let loadedTopRated: LoadedTopRated
     let expectedTitle: String
 
+    @MainActor
     static func make() -> Environment {
         let view = MockTopRatedView()
-        let presenter = TopRatedPresenter(uiAssets: MovieDBUIAssets.system)
+        let mapper = MovieListViewModelMapper(uiAssets: MovieDBUIAssets.system)
+        let presenter = TopRatedPresenter(mapper: mapper)
         presenter.view = view
 
         let movies = [

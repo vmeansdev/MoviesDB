@@ -23,6 +23,7 @@ struct TopRatedCoordinatorTests {
 
         sut.start()
 
-        #expect(navigationController.viewControllers.first is TopRatedViewController)
+        let didSetRoot = await waitUntil { navigationController.viewControllers.first is TopRatedViewController }
+        #expect(didSetRoot)
     }
 }

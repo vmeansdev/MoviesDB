@@ -19,7 +19,7 @@ struct RootCoordinatorTests {
         let sut = RootCoordinator(
             window: window,
             windowConfigurator: WindowConfigurator(),
-            appearanceConfigurator: AppAppearanceConfigurator.self,
+            appearanceConfigurator: AppAppearanceConfigurator(),
             tabBarController: tabBarController,
             tabBarNavigationManager: tabBarNavigationManager,
             tabItems: tabItems
@@ -27,8 +27,13 @@ struct RootCoordinatorTests {
 
         sut.start()
 
-        #expect(window.rootViewController is RootTabBarController)
-        #expect(popular.startCallCount == 1)
+        let didSetRoot = await waitUntil { window.rootViewController is RootTabBarController }
+        #expect(didSetRoot)
+
+        let didStartPopular = await waitUntil {
+            await MainActor.run { popular.startCallCount == 1 }
+        }
+        #expect(didStartPopular)
         #expect(topRated.startCallCount == 0)
     }
 }

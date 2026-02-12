@@ -3,7 +3,7 @@ import MovieDBData
 import MovieDBUI
 import UIKit
 
-struct LoadedPopular: Equatable, Sendable {
+struct LoadedPopular: Equatable, Sendable, MovieListLoadedState {
     let currentPage: Int
     let totalPages: Int
     let totalResults: Int
@@ -14,8 +14,6 @@ struct LoadedPopular: Equatable, Sendable {
         currentPage < totalPages
     }
 }
-
-typealias RetryAction = @MainActor @Sendable () -> Void
 
 enum PopularState: Equatable, Sendable {
     case loading(isInitial: Bool)
@@ -43,10 +41,10 @@ protocol PopularPresenterProtocol {
 
 final class PopularPresenter: PopularPresenterProtocol {
     weak var view: MovieListPresentable?
-    private let uiAssets: MovieDBUIAssetsProtocol
+    private let mapper: MovieListViewModelMapper
 
-    init(uiAssets: MovieDBUIAssetsProtocol) {
-        self.uiAssets = uiAssets
+    init(mapper: MovieListViewModelMapper) {
+        self.mapper = mapper
     }
 
     func present(state: PopularState) async {
@@ -54,22 +52,7 @@ final class PopularPresenter: PopularPresenterProtocol {
         case let .loading(isInitial):
             view?.displayLoading(isInitial: isInitial)
         case let .loaded(popular):
-            let movies: [MovieCollectionViewModel] = popular.movies.enumerated().map { index, movie in
-                let posterURL = movie.posterPath.isEmpty ? nil : URL(string: "\(Constants.posterBaseURL)\(movie.posterPath)")
-                let isInWatchlist = popular.watchlistIds.contains(movie.id)
-                let watchlistTintColor: UIColor = isInWatchlist ? .systemPink : .white
-                let watchlistIcon = isInWatchlist ? uiAssets.heartFilledIcon : uiAssets.heartIcon
-                return MovieCollectionViewModel(
-                    id: "\(movie.id)-\(index)",
-                    title: movie.title,
-                    subtitle: movie.releaseDate ?? "",
-                    posterURL: posterURL,
-                    watchlistIcon: watchlistIcon,
-                    watchlistSelectedIcon: nil,
-                    watchlistTintColor: watchlistTintColor,
-                    isInWatchlist: isInWatchlist
-                )
-            }
+            let movies = mapper.makeMovies(from: popular)
             view?.displayTitle(Constants.title(popularCount: movies.count))
             view?.displayMovies(movies)
         case let .error(error, action):
@@ -79,7 +62,6 @@ final class PopularPresenter: PopularPresenterProtocol {
 }
 
 private enum Constants {
-    static var posterBaseURL: String { "\(Environment.imageBaseURLString)/t/p/w500" }
     static func title(popularCount: Int) -> String {
         String(format: String.localizable.popularCountTitle, popularCount)
     }

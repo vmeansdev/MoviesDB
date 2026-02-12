@@ -49,7 +49,8 @@ private struct Environment {
     @MainActor
     static func make() -> Environment {
         let view = MockPopularView()
-        let presenter = PopularPresenter(uiAssets: MovieDBUIAssets.system)
+        let mapper = MovieListViewModelMapper(uiAssets: MovieDBUIAssets.system)
+        let presenter = PopularPresenter(mapper: mapper)
         presenter.view = view
 
         let movies = [

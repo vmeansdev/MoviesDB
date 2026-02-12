@@ -5,21 +5,23 @@ import MovieDBData
 
 struct TopRatedInteractorTests {
     @Test
+    @MainActor
     func test_viewDidLoad_whenInitial_shouldFetchTwoPagesAndPresentLoadedState() async throws {
-        let environment = Environment.make()
+        let environment = await Environment.make()
         environment.service.fetchTopRatedHandler = { options in
             options.page == 1 ? environment.page1 : environment.page2
         }
 
         await environment.sut.viewDidLoad()
-        try await Task.sleep(for: .milliseconds(10))
+        let didFetch = await waitUntil { environment.service.fetchTopRatedCalls.count >= 2 }
+        #expect(didFetch)
 
         let calls = environment.service.fetchTopRatedCalls
         #expect(calls.count == 2)
         #expect(calls[0].page == 1)
         #expect(calls[1].page == 2)
 
-        let states = await environment.presenter.states
+        let states = await MainActor.run { environment.presenter.states }
         let loadedStates = states.compactMap { state -> LoadedTopRated? in
             if case let .loaded(value) = state { return value }
             return nil
@@ -28,12 +30,21 @@ struct TopRatedInteractorTests {
     }
 
     @Test
+    @MainActor
     func test_didSelect_whenValidIndex_shouldNotifyOutput() async {
-        let environment = Environment.make()
+        let environment = await Environment.make()
         environment.service.fetchTopRatedHandler = { _ in environment.page1 }
 
         await environment.sut.viewDidLoad()
-        try? await Task.sleep(for: .milliseconds(10))
+        let didLoad = await waitUntil {
+            await MainActor.run {
+                environment.presenter.states.contains { state in
+                    if case .loaded = state { return true }
+                    return false
+                }
+            }
+        }
+        #expect(didLoad)
 
         await environment.sut.didSelect(item: 0)
         let selected = await environment.output.selectedMovies
@@ -42,12 +53,14 @@ struct TopRatedInteractorTests {
     }
 
     @Test
+    @MainActor
     func test_loadMore_whenNoMoreItems_shouldNotFetch() async {
-        let environment = Environment.make()
+        let environment = await Environment.make()
         environment.service.fetchTopRatedHandler = { _ in environment.noMoreItemsPage }
 
         await environment.sut.viewDidLoad()
-        try? await Task.sleep(for: .milliseconds(10))
+        let didFetch = await waitUntil { environment.service.fetchTopRatedCalls.count >= 1 }
+        #expect(didFetch)
 
         await environment.sut.loadMore()
         let calls = environment.service.fetchTopRatedCalls
@@ -108,6 +121,7 @@ private struct Environment {
         MovieList(page: 1, results: [movie1], totalPages: 1, totalResults: 1)
     }
 
+    @MainActor
     static func make() -> Environment {
         let presenter = MockTopRatedPresenter()
         let service = MockMoviesService()

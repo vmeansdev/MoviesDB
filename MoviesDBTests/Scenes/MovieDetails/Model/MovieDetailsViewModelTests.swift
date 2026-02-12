@@ -1,6 +1,6 @@
-import MovieDBData
 import MovieDBUI
 import Testing
+@testable import MovieDBData
 @testable import MoviesDB
 
 struct MovieDetailsViewModelTests {
@@ -77,6 +77,8 @@ struct MovieDetailsViewModelTests {
 
         let sut = MovieDetailsViewModel(movie: movie, moviesService: service, watchlistStore: nil, uiAssets: nil)
         await sut.loadDetailsIfNeeded()
+        let didFetch = await waitUntil { service.fetchDetailsCalls == [550] }
+        #expect(didFetch)
         let content = sut.content
 
         #expect(content.title == "Fight Club")
@@ -111,6 +113,7 @@ struct MovieDetailsViewModelTests {
         await sut.loadDetailsIfNeeded()
         await sut.loadDetailsIfNeeded()
 
-        #expect(service.fetchDetailsCalls.count == 1)
+        let didFetchOnce = await waitUntil { service.fetchDetailsCalls.count == 1 }
+        #expect(didFetchOnce)
     }
 }

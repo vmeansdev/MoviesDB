@@ -92,7 +92,12 @@ public class MovieCollectionViewCell: CollectionViewCell<MovieCollectionViewMode
     public override func configure(with viewModel: MovieCollectionViewModel) {
         posterImageView.kf.indicatorType = .activity
         if let posterURL = viewModel.posterURL {
-            posterImageView.kf.setImage(with: posterURL)
+            if posterURL.isFileURL, let image = UIImage(contentsOfFile: posterURL.path) {
+                posterImageView.kf.cancelDownloadTask()
+                posterImageView.image = image
+            } else {
+                posterImageView.kf.setImage(with: posterURL)
+            }
         } else {
             posterImageView.image = nil
         }

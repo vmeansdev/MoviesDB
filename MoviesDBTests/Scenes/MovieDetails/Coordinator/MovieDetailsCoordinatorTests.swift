@@ -33,6 +33,7 @@ struct MovieDetailsCoordinatorTests {
 
         sut.start()
 
-        #expect(navigationController.topViewController is MovieDetailsViewController)
+        let didPush = await waitUntil { navigationController.topViewController is MovieDetailsViewController }
+        #expect(didPush)
     }
 }
