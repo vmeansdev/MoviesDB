@@ -102,10 +102,9 @@ public class MovieCollectionViewCell: CollectionViewCell<MovieCollectionViewMode
             posterImageView.image = nil
         }
         titleLabel.text = viewModel.title
-        titleLabel.accessibilityLabel = viewModel.title
         subtitleLabel.text = viewModel.subtitle
-        subtitleLabel.accessibilityLabel = viewModel.subtitle
         updateWatchlistButton(with: viewModel)
+        configureAccessibility(with: viewModel)
     }
 
     public func onDetach() {
@@ -119,6 +118,28 @@ public class MovieCollectionViewCell: CollectionViewCell<MovieCollectionViewMode
 
     private func updateWatchlistButton(with viewModel: MovieCollectionViewModel) {
         watchlistButton.configure(icon: viewModel.watchlistIcon, tintColor: viewModel.watchlistTintColor)
+        configureWatchlistAccessibility(isInWatchlist: viewModel.isInWatchlist)
+    }
+
+    private func configureAccessibility(with viewModel: MovieCollectionViewModel) {
+        titleLabel.accessibilityLabel = viewModel.title
+        titleLabel.accessibilityTraits = .header
+        subtitleLabel.accessibilityLabel = viewModel.subtitle
+        posterImageView.isAccessibilityElement = true
+        posterImageView.accessibilityTraits = .image
+        posterImageView.accessibilityLabel = MovieDBUILocalizable.format(.posterAccessibilityFormat, viewModel.title)
+    }
+
+    private func configureWatchlistAccessibility(isInWatchlist: Bool) {
+        watchlistButton.isAccessibilityElement = true
+        watchlistButton.accessibilityTraits = .button
+        watchlistButton.accessibilityHint = MovieDBUILocalizable.string(.watchlistAccessibilityHint)
+        watchlistButton.accessibilityLabel = isInWatchlist
+            ? MovieDBUILocalizable.string(.watchlistAccessibilityRemove)
+            : MovieDBUILocalizable.string(.watchlistAccessibilityAdd)
+        watchlistButton.accessibilityValue = isInWatchlist
+            ? MovieDBUILocalizable.string(.watchlistAccessibilityValueIn)
+            : MovieDBUILocalizable.string(.watchlistAccessibilityValueOut)
     }
 
     @objc private func didTapWatchlist() {

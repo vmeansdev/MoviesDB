@@ -28,11 +28,14 @@ public struct MovieDetailsView: View {
     private var header: some View {
         ZStack(alignment: .bottomLeading) {
             headerImage
+                .accessibilityLabel(Text(headerImageAccessibilityLabel))
+                .accessibilityAddTraits(.isImage)
             LinearGradient(
                 gradient: Gradient(colors: [Color.black.opacity(0.6), Color.black.opacity(0.0)]),
                 startPoint: .bottom,
                 endPoint: .top
             )
+            .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 6) {
                 Text(content.title)
                     .font(.system(size: 32, weight: .bold))
@@ -74,6 +77,8 @@ public struct MovieDetailsView: View {
                             .font(.headline)
                             .foregroundColor(.primary)
                     }
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(Text(MovieDBUILocalizable.format(.metadataAccessibilityFormat, item.title, item.value)))
                 }
             }
             .padding(.top, 4)
@@ -95,6 +100,9 @@ public struct MovieDetailsView: View {
                     .clipShape(Circle())
             }
         }
+        .accessibilityLabel(Text(watchlistAccessibilityLabel))
+        .accessibilityValue(Text(watchlistAccessibilityValue))
+        .accessibilityHint(Text(MovieDBUILocalizable.string(.watchlistAccessibilityHint)))
         .padding(16)
     }
 
@@ -114,5 +122,25 @@ public struct MovieDetailsView: View {
                 .foregroundColor(.primary)
         }
         .padding(.horizontal, 16)
+        .accessibilityElement(children: .combine)
+    }
+
+    private var headerImageAccessibilityLabel: String {
+        if content.backdropURL != nil {
+            return MovieDBUILocalizable.format(.backdropAccessibilityFormat, content.title)
+        }
+        return MovieDBUILocalizable.format(.posterAccessibilityFormat, content.title)
+    }
+
+    private var watchlistAccessibilityLabel: String {
+        viewModel.isInWatchlist
+            ? MovieDBUILocalizable.string(.watchlistAccessibilityRemove)
+            : MovieDBUILocalizable.string(.watchlistAccessibilityAdd)
+    }
+
+    private var watchlistAccessibilityValue: String {
+        viewModel.isInWatchlist
+            ? MovieDBUILocalizable.string(.watchlistAccessibilityValueIn)
+            : MovieDBUILocalizable.string(.watchlistAccessibilityValueOut)
     }
 }

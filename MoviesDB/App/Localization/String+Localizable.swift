@@ -13,6 +13,13 @@ extension Localizable {
     var tabWatchlistTitle: String { string(forKey: "tabitem_watchlist_title") }
     var watchlistEmptyTitle: String { string(forKey: "watchlist_empty_title") }
     var watchlistEmptySubtitle: String { string(forKey: "watchlist_empty_subtitle") }
+    var watchlistAccessibilityAdd: String { string(forKey: "watchlist_accessibility_add") }
+    var watchlistAccessibilityRemove: String { string(forKey: "watchlist_accessibility_remove") }
+    var watchlistAccessibilityHint: String { string(forKey: "watchlist_accessibility_hint") }
+    var watchlistAccessibilityValueIn: String { string(forKey: "watchlist_accessibility_value_in") }
+    var watchlistAccessibilityValueOut: String { string(forKey: "watchlist_accessibility_value_out") }
+    var watchlistPosterAccessibilityFormat: String { string(forKey: "watchlist_poster_accessibility_format") }
+    var watchlistEmptyIconAccessibilityLabel: String { string(forKey: "watchlist_empty_icon_accessibility_label") }
     var movieDetailsOverviewTitle: String { string(forKey: "movie_details_overview_title") }
     var movieDetailsRatingLabel: String { string(forKey: "movie_details_rating_label") }
     var movieDetailsRatingValue: String { string(forKey: "movie_details_rating_value") }

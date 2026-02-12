@@ -48,6 +48,7 @@ struct WatchlistView: View {
                     .scaledToFit()
                     .frame(width: 56, height: 56)
                     .foregroundColor(.secondary)
+                    .accessibilityLabel(Text(String.localizable.watchlistEmptyIconAccessibilityLabel))
             }
             Text(String.localizable.watchlistEmptyTitle)
                 .font(.title3.weight(.semibold))
@@ -96,6 +97,9 @@ private struct WatchlistRow: View {
                 .padding(8)
                 .contentShape(Circle())
                 .highPriorityGesture(TapGesture().onEnded(onToggle))
+                .accessibilityLabel(Text(watchlistAccessibilityLabel))
+                .accessibilityValue(Text(watchlistAccessibilityValue))
+                .accessibilityHint(Text(String.localizable.watchlistAccessibilityHint))
         }
         .frame(height: 250)
         .listRowBackground(Color.clear)
@@ -119,10 +123,19 @@ private struct WatchlistRow: View {
         .frame(maxWidth: .infinity)
         .frame(height: 250)
         .clipped()
+        .accessibilityLabel(Text(String(format: String.localizable.watchlistPosterAccessibilityFormat, movie.title)))
     }
 
     private var posterURL: URL? {
         guard !movie.posterPath.isEmpty else { return nil }
         return URL(string: "\(Environment.imageBaseURLString)/t/p/w500\(movie.posterPath)")
+    }
+
+    private var watchlistAccessibilityLabel: String {
+        String.localizable.watchlistAccessibilityRemove
+    }
+
+    private var watchlistAccessibilityValue: String {
+        String.localizable.watchlistAccessibilityValueIn
     }
 }

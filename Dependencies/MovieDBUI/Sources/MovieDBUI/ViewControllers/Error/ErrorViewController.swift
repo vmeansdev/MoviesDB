@@ -25,7 +25,7 @@ public class ErrorViewController: UIViewController {
     }()
     private lazy var retryButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Retry", for: .normal)
+        button.setTitle(MovieDBUILocalizable.string(.errorRetryTitle), for: .normal)
         button.titleLabel?.adjustsFontForContentSizeCategory = true
         button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .title2)
         button.addTarget(self, action: #selector(retryButtonTapped), for: .touchUpInside)
@@ -33,7 +33,7 @@ public class ErrorViewController: UIViewController {
     }()
     private lazy var closeButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Close", for: .normal)
+        button.setTitle(MovieDBUILocalizable.string(.errorCloseTitle), for: .normal)
         button.titleLabel?.adjustsFontForContentSizeCategory = true
         button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .title2)
         button.addTarget(self, action: #selector(closeTapped), for: .touchUpInside)
@@ -77,6 +77,17 @@ public class ErrorViewController: UIViewController {
         messageLabel.text = viewModel.errorMessage
         retryButton.isHidden = viewModel.retryAction == nil
         closeButton.isHidden = viewModel.retryAction != nil
+
+        configureAccessibility()
+    }
+
+    private func configureAccessibility() {
+        messageLabel.isAccessibilityElement = true
+        messageLabel.accessibilityLabel = viewModel.errorMessage
+        retryButton.accessibilityLabel = MovieDBUILocalizable.string(.errorRetryTitle)
+        retryButton.accessibilityTraits = .button
+        closeButton.accessibilityLabel = MovieDBUILocalizable.string(.errorCloseTitle)
+        closeButton.accessibilityTraits = .button
     }
 
     private func makeLayout() {

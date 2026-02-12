@@ -18,6 +18,7 @@ public final class LoadingViewController: UIViewController {
         view.backgroundColor = .systemBackground
         view.addSubview(loadingIndicator)
         loadingIndicator.startAnimating()
+        configureAccessibility()
         makeConstraints()
     }
 
@@ -32,5 +33,10 @@ public final class LoadingViewController: UIViewController {
             loadingIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             loadingIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         ])
+    }
+
+    private func configureAccessibility() {
+        loadingIndicator.isAccessibilityElement = true
+        loadingIndicator.accessibilityLabel = MovieDBUILocalizable.string(.loadingAccessibilityLabel)
     }
 }
