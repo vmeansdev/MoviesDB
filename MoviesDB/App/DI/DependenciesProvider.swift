@@ -1,4 +1,5 @@
 import AppHttpKit
+import MovieDBData
 import MovieDBUI
 import UIKit
 
@@ -35,7 +36,17 @@ final class DependenciesProvider: DependenciesProviderProtocol {
         self.window = window
         self.windowConfigurator = windowConfigurator
         self.appearanceConfigurator = appearanceConfigurator
-        serviceProvider = ServiceProvider(apiKey: Environment.apiKey, httpClient: HttpClient(baseURL: Environment.baseURLString))
+        let baseURL = Environment.baseURLString
+        let httpClient = HttpClient(baseURL: baseURL)
+        let cache = ResponseCache()
+        let policy = MovieDBCachePolicy()
+        let cachingClient = CachingClient(
+            baseURL: baseURL,
+            client: httpClient,
+            cache: cache,
+            policy: policy
+        )
+        serviceProvider = ServiceProvider(apiKey: Environment.apiKey, httpClient: cachingClient)
         assetsProvider = AssetsProvider()
         storeProvider = StoreProvider()
     }

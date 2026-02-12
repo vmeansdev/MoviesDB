@@ -9,6 +9,13 @@ public struct Response {
     public var isSuccessful: Bool {
         return code >= 200 && code < 400
     }
+
+    public init(request: Request, headers: [String: String], code: Int, body: Data) {
+        self.request = request
+        self.headers = headers
+        self.code = code
+        self.body = body
+    }
 }
 
 public extension Response {
