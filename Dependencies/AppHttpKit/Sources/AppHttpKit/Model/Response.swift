@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Response {
+public struct Response: @unchecked Sendable {
     public let request: Request
     public let headers: [String: String]
     public let code: Int

@@ -1,7 +1,7 @@
 import AnyCodable
 import Foundation
 
-public struct Request {
+public struct Request: @unchecked Sendable {
     public let method: Method
     public let url: String
     public let queryParams: [String: AnyEncodable]?
