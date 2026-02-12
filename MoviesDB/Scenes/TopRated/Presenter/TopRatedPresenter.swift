@@ -40,7 +40,7 @@ protocol TopRatedPresenterProtocol {
 }
 
 final class TopRatedPresenter: TopRatedPresenterProtocol {
-    weak var view: TopRatedPresentable?
+    weak var view: MovieListPresentable?
     private let uiAssets: MovieDBUIAssetsProtocol
 
     init(uiAssets: MovieDBUIAssetsProtocol) {
@@ -74,11 +74,11 @@ final class TopRatedPresenter: TopRatedPresenterProtocol {
             view?.displayError(ErrorViewModel(errorMessage: error.localizedDescription, retryAction: action))
         }
     }
+}
 
-    private enum Constants {
-        static var posterBaseURL: String { "\(Environment.imageBaseURLString)/t/p/w500" }
-        static func title(topRatedCount: Int) -> String {
-            String(format: String.localizable.topRatedCountTitle, topRatedCount)
-        }
+private enum Constants {
+    static var posterBaseURL: String { "\(Environment.imageBaseURLString)/t/p/w500" }
+    static func title(topRatedCount: Int) -> String {
+        String(format: String.localizable.topRatedCountTitle, topRatedCount)
     }
 }

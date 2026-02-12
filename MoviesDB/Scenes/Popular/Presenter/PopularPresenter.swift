@@ -42,7 +42,7 @@ protocol PopularPresenterProtocol {
 }
 
 final class PopularPresenter: PopularPresenterProtocol {
-    weak var view: PopularPresentable?
+    weak var view: MovieListPresentable?
     private let uiAssets: MovieDBUIAssetsProtocol
 
     init(uiAssets: MovieDBUIAssetsProtocol) {
@@ -76,11 +76,11 @@ final class PopularPresenter: PopularPresenterProtocol {
             view?.displayError(ErrorViewModel(errorMessage: error.localizedDescription, retryAction: action))
         }
     }
+}
 
-    private enum Constants {
-        static var posterBaseURL: String { "\(Environment.imageBaseURLString)/t/p/w500" }
-        static func title(popularCount: Int) -> String {
-            String(format: String.localizable.popularCountTitle, popularCount)
-        }
+private enum Constants {
+    static var posterBaseURL: String { "\(Environment.imageBaseURLString)/t/p/w500" }
+    static func title(popularCount: Int) -> String {
+        String(format: String.localizable.popularCountTitle, popularCount)
     }
 }

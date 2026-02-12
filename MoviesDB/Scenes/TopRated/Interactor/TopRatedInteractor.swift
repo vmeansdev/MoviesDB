@@ -2,14 +2,7 @@ import Foundation
 import MovieDBData
 import MovieDBUI
 
-protocol TopRatedInteractorProtocol: Actor {
-    func viewDidLoad() async
-    func viewWillUnload() async
-    func didSelect(item: Int) async
-    func didToggleWatchlist(item: Int) async
-    func loadMore() async
-    func canLoadMore(item: Int) async -> Bool
-}
+protocol TopRatedInteractorProtocol: MovieListInteractorProtocol {}
 
 @MainActor
 protocol TopRatedInteractorOutput: AnyObject {
@@ -56,12 +49,12 @@ actor TopRatedInteractor: TopRatedInteractorProtocol {
     }
 
     func didSelect(item: Int) async {
-        guard let movie = await topRated.movies[safe: item] else { return }
+        guard let movie = topRated.movies[safe: item] else { return }
         await output.didSelect(movie: movie)
     }
 
     func didToggleWatchlist(item: Int) async {
-        guard let movie = await topRated.movies[safe: item] else { return }
+        guard let movie = topRated.movies[safe: item] else { return }
         await watchlistStore.toggle(movie: movie)
     }
 
