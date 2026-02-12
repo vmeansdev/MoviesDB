@@ -9,10 +9,21 @@ public protocol MovieListPresentable: AnyObject {
 }
 
 open class MovieListViewController: UIViewController {
+    private enum Constants {
+        static let gridMinItemWidth: CGFloat = 200
+        static let maxGridColumns = 6
+        static let minGridColumns = 2
+    }
+
+    private enum LayoutStyle: Equatable {
+        case list
+        case grid(columns: Int)
+    }
+
     // MARK: - Properties
     public let interactor: MovieListInteractorProtocol
     private lazy var collectionView: UICollectionView = {
-        let view = UICollectionView(frame: .zero, collectionViewLayout: makeCollectionLayout())
+        let view = UICollectionView(frame: .zero, collectionViewLayout: makeCollectionLayout(for: .list))
         view.isPrefetchingEnabled = true
         view.prefetchDataSource = self
         view.backgroundColor = .systemBackground
@@ -23,6 +34,7 @@ open class MovieListViewController: UIViewController {
         return view
     }()
     private var dataSource: UICollectionViewDiffableDataSource<Int, MovieCollectionViewModel>!
+    private var layoutStyle: LayoutStyle = .list
 
     // MARK: - Initialization
     public init(interactor: MovieListInteractorProtocol) {
@@ -52,6 +64,7 @@ open class MovieListViewController: UIViewController {
 
     open override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
+        updateLayoutIfNeeded()
         let topInset = view.safeAreaInsets.top
         if collectionView.contentInset.top != topInset {
             var insets = collectionView.contentInset
@@ -60,6 +73,11 @@ open class MovieListViewController: UIViewController {
             collectionView.contentInset = insets
             collectionView.scrollIndicatorInsets = insets
         }
+    }
+
+    open override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        updateLayoutIfNeeded()
     }
 
     open override func viewWillDisappear(_ animated: Bool) {
@@ -132,19 +150,68 @@ extension MovieListViewController: MovieListPresentable {
 
 // MARK: - Layout configuration
 private extension MovieListViewController {
-    func makeCollectionLayout() -> UICollectionViewLayout {
-        let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .fractionalHeight(1))
+    private func makeCollectionLayout(for style: LayoutStyle) -> UICollectionViewLayout {
+        let columns = columnsCount(for: style)
+        let itemWidthFraction = 1.0 / CGFloat(columns)
+        let itemSize = NSCollectionLayoutSize(
+            widthDimension: .fractionalWidth(itemWidthFraction),
+            heightDimension: .fractionalHeight(1)
+        )
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
         item.contentInsets = .zero
 
         let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(250))
-        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
+        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitem: item, count: columns)
 
         let section = NSCollectionLayoutSection(group: group)
         section.contentInsets = .zero
         section.interGroupSpacing = 0
 
         return UICollectionViewCompositionalLayout(section: section)
+    }
+
+    func updateLayoutIfNeeded() {
+        let nextStyle = resolveLayoutStyle()
+        guard nextStyle != layoutStyle else { return }
+        layoutStyle = nextStyle
+        collectionView.setCollectionViewLayout(makeCollectionLayout(for: nextStyle), animated: false)
+    }
+
+    private func resolveLayoutStyle() -> LayoutStyle {
+        if shouldUseGridLayout() {
+            let columns = gridColumnsCount()
+            return .grid(columns: columns)
+        }
+        return .list
+    }
+
+    func shouldUseGridLayout() -> Bool {
+        if traitCollection.horizontalSizeClass == .regular {
+            return true
+        }
+        if traitCollection.userInterfaceIdiom == .phone {
+            return view.bounds.width > view.bounds.height
+        }
+        return false
+    }
+
+    func gridColumnsCount() -> Int {
+        if traitCollection.userInterfaceIdiom == .phone {
+            return 3
+        }
+        let availableWidth = max(0, view.bounds.width - view.safeAreaInsets.left - view.safeAreaInsets.right)
+        let rawColumns = Int(availableWidth / Constants.gridMinItemWidth)
+        let clamped = min(Constants.maxGridColumns, max(Constants.minGridColumns, rawColumns))
+        return clamped
+    }
+
+    private func columnsCount(for style: LayoutStyle) -> Int {
+        switch style {
+        case .list:
+            return 1
+        case .grid(let columns):
+            return columns
+        }
     }
 
     func makeLayout() {
