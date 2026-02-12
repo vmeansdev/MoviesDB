@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: macos-latest
+    env:
+      NSUnbufferedIO: "YES"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Xcode Version
+        run: xcodebuild -version
+
+      - name: Resolve Simulator
+        run: |
+          set -euo pipefail
+          xcrun simctl list devices available
+
+      - name: Test MoviesDB
+        run: |
+          set -euo pipefail
+          xcodebuild \
+            -scheme MoviesDB \
+            -destination 'platform=iOS Simulator,OS=latest,name=iPhone 15 Pro' \
+            -derivedDataPath /tmp/DerivedData \
+            test
+
+      - name: Test MovieDBUI
+        run: |
+          set -euo pipefail
+          SNAPSHOT_TESTING_RECORD=0 xcodebuild \
+            -scheme MovieDBUI \
+            -destination 'platform=iOS Simulator,OS=latest,name=iPhone 15 Pro' \
+            -derivedDataPath /tmp/DerivedData \
+            test
+
+      - name: Test MovieDBData
+        run: |
+          set -euo pipefail
+          xcodebuild \
+            -scheme MovieDBData \
+            -destination 'platform=iOS Simulator,OS=latest,name=iPhone 15 Pro' \
+            -derivedDataPath /tmp/DerivedData \
+            test
