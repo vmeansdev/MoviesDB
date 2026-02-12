@@ -117,6 +117,7 @@ public class MovieCollectionViewCell: CollectionViewCell<MovieCollectionViewMode
     }
 
     @objc private func didTapWatchlist() {
+        watchlistButton.pulse()
         onToggleWatchlist?()
     }
 }

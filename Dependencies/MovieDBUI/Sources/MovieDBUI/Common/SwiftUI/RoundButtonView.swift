@@ -19,7 +19,7 @@ public struct RoundButtonView: View {
                 .foregroundColor(Color(tintColor))
                 .frame(width: 20, height: 20)
                 .padding(8)
-                .background(Color.black.opacity(0.35))
+                .background(Color.white.opacity(0.5))
                 .clipShape(Circle())
         }
     }

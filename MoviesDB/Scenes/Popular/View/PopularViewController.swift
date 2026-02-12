@@ -90,11 +90,26 @@ extension PopularViewController: PopularPresentable {
 
     func displayMovies(_ movies: [MovieCollectionViewModel]) {
         hideErrorIfNeeded()
+        let currentSnapshot = dataSource.snapshot()
         var snapshot = NSDiffableDataSourceSnapshot<Int, MovieCollectionViewModel>()
         snapshot.appendSections([0])
         snapshot.appendItems(movies)
-        snapshot.reloadItems(movies)
-        dataSource.apply(snapshot, animatingDifferences: true)
+        if currentSnapshot.numberOfItems == 0 {
+            dataSource.apply(snapshot, animatingDifferences: true)
+            return
+        }
+
+        let currentItems = Dictionary(uniqueKeysWithValues: currentSnapshot.itemIdentifiers.map { ($0.id, $0) })
+        let changed = movies.compactMap { item -> MovieCollectionViewModel? in
+            guard let previous = currentItems[item.id] else { return item }
+            return previous == item ? nil : item
+        }
+
+        snapshot.reconfigureItems(changed)
+        let currentIds = currentSnapshot.itemIdentifiers.map(\.id)
+        let newIds = movies.map(\.id)
+        let shouldAnimate = currentIds != newIds
+        dataSource.apply(snapshot, animatingDifferences: shouldAnimate)
     }
 
     func displayError(_ error: ErrorViewModel) {

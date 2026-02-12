@@ -31,11 +31,23 @@ public struct MovieCollectionViewModel: Hashable {
         self.isInWatchlist = isInWatchlist
     }
 
-    public static func == (lhs: MovieCollectionViewModel, rhs: MovieCollectionViewModel) -> Bool {
-        lhs.id == rhs.id
-    }
-
     public func hash(into hasher: inout Hasher) {
         hasher.combine(id)
+        hasher.combine(title)
+        hasher.combine(subtitle)
+        hasher.combine(posterURL)
+        hasher.combine(watchlistIcon)
+        hasher.combine(watchlistTintColor)
+        hasher.combine(isInWatchlist)
+    }
+
+    public static func == (lhs: MovieCollectionViewModel, rhs: MovieCollectionViewModel) -> Bool {
+        lhs.id == rhs.id
+            && lhs.title == rhs.title
+            && lhs.subtitle == rhs.subtitle
+            && lhs.posterURL == rhs.posterURL
+            && lhs.watchlistIcon == rhs.watchlistIcon
+            && lhs.watchlistTintColor == rhs.watchlistTintColor
+            && lhs.isInWatchlist == rhs.isInWatchlist
     }
 }
