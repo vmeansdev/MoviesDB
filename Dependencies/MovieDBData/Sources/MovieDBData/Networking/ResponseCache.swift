@@ -1,7 +1,7 @@
 import Foundation
 
 public actor ResponseCache {
-    public struct Entry: Codable {
+    public struct Entry: Codable, Sendable {
         public let expiry: Date
         public let code: Int
         public let headers: [String: String]

@@ -1,13 +1,13 @@
 import AppHttpKit
 import Foundation
 
-public protocol MoviesServiceProtocol {
+public protocol MoviesServiceProtocol: Sendable {
     func fetchPopular(options: MovieListOptions) async throws -> MovieList
     func fetchTopRated(options: MovieListOptions) async throws -> MovieList
     func fetchDetails(id: Int) async throws -> MovieDetails
 }
 
-public final class MoviesService: MoviesServiceProtocol {
+public final class MoviesService: MoviesServiceProtocol, @unchecked Sendable {
     private let apiKey: String
     private let client: Client
     private let decoder: JSONDecoder

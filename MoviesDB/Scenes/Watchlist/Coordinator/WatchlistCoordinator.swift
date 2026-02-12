@@ -2,7 +2,7 @@ import MovieDBData
 import MovieDBUI
 import UIKit
 
-final class WatchlistCoordinator: Coordinator {
+final class WatchlistCoordinator: @MainActor Coordinator {
     private let rootViewController: UINavigationController
     private let dependenciesProvider: DependenciesProviderProtocol
     private let coordinatorProvider: CoordinatorProviderProtocol

@@ -12,7 +12,7 @@ final class WatchlistViewModel {
     private let watchlistStore: WatchlistStoreProtocol
     private let uiAssets: MovieDBUIAssetsProtocol
     private let onSelect: (Movie) -> Void
-    nonisolated(unsafe) private var observationTask: Task<Void, Never>?
+    private var observationTask: Task<Void, Never>?
 
     init(
         watchlistStore: WatchlistStoreProtocol,
@@ -25,7 +25,7 @@ final class WatchlistViewModel {
         observeWatchlist()
     }
 
-    deinit {
+    @MainActor deinit {
         observationTask?.cancel()
     }
 
@@ -46,7 +46,7 @@ final class WatchlistViewModel {
 
     private func observeWatchlist() {
         observationTask?.cancel()
-        observationTask = Task {
+        observationTask = Task { @MainActor in
             let stream = await watchlistStore.itemsStream()
             for await updatedItems in stream {
                 withAnimation(.easeInOut(duration: 0.2)) {

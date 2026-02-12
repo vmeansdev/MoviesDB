@@ -35,11 +35,11 @@ enum TopRatedState: Equatable {
 }
 
 @MainActor
-protocol TopRatedPresenterProtocol {
+protocol TopRatedPresenterProtocol: Sendable {
     func present(state: TopRatedState) async
 }
 
-final class TopRatedPresenter: TopRatedPresenterProtocol {
+final class TopRatedPresenter: TopRatedPresenterProtocol, @unchecked Sendable {
     weak var view: MovieListPresentable?
     private let mapper: MovieListViewModelMapper
 

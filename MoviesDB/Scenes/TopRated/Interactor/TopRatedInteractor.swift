@@ -4,8 +4,7 @@ import MovieDBUI
 
 protocol TopRatedInteractorProtocol: MovieListInteractorProtocol {}
 
-@MainActor
-protocol TopRatedInteractorOutput: AnyObject {
+protocol TopRatedInteractorOutput: AnyObject, Sendable {
     func didSelect(movie: Movie)
 }
 
@@ -50,7 +49,7 @@ actor TopRatedInteractor: TopRatedInteractorProtocol {
 
     func didSelect(item: Int) async {
         guard let movie = topRated.movies[safe: item] else { return }
-        await output.didSelect(movie: movie)
+        await MainActor.run { output.didSelect(movie: movie) }
     }
 
     func didToggleWatchlist(item: Int) async {
@@ -71,13 +70,17 @@ actor TopRatedInteractor: TopRatedInteractorProtocol {
 
     private func loadNextPage() {
         currentTask?.cancel()
-        currentTask = Task {
-            let nextPage = topRated.currentPage + 1
-            if topRated.currentPage == 0 {
-                await fetchInitialPages(startingAt: nextPage)
-            } else {
-                await fetchTopRated(page: nextPage)
-            }
+        currentTask = Task { [weak self] in
+            await self?.performLoadNextPage()
+        }
+    }
+
+    private func performLoadNextPage() async {
+        let nextPage = topRated.currentPage + 1
+        if topRated.currentPage == 0 {
+            await fetchInitialPages(startingAt: nextPage)
+        } else {
+            await fetchTopRated(page: nextPage)
         }
     }
 
@@ -154,11 +157,15 @@ actor TopRatedInteractor: TopRatedInteractorProtocol {
 
     private func startWatchlistObservationIfNeeded() {
         guard watchlistTask == nil else { return }
-        watchlistTask = Task {
-            let stream = await watchlistStore.itemsStream()
-            for await items in stream {
-                await updateWatchlist(items: items)
-            }
+        watchlistTask = Task { [weak self] in
+            await self?.observeWatchlist()
+        }
+    }
+
+    private func observeWatchlist() async {
+        let stream = await watchlistStore.itemsStream()
+        for await items in stream {
+            await updateWatchlist(items: items)
         }
     }
 

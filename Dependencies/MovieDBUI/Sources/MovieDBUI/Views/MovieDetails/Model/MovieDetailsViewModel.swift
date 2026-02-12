@@ -15,7 +15,7 @@ public final class MovieDetailsViewModel {
     private let watchlistUpdates: (@Sendable () async -> AsyncStream<Bool>)?
     private let toggleWatchlistAction: (@Sendable () async -> Void)?
     private var hasLoadedDetails = false
-    nonisolated(unsafe) private var watchlistTask: Task<Void, Never>?
+    private var watchlistTask: Task<Void, Never>?
 
     public init(
         content: MovieDetailsContent,
@@ -40,7 +40,7 @@ public final class MovieDetailsViewModel {
         observeWatchlistIfNeeded()
     }
 
-    deinit {
+    @MainActor deinit {
         watchlistTask?.cancel()
     }
 
@@ -68,7 +68,7 @@ public final class MovieDetailsViewModel {
     private func observeWatchlistIfNeeded() {
         guard let watchlistUpdates else { return }
         watchlistTask?.cancel()
-        watchlistTask = Task { [weak self] in
+        watchlistTask = Task { @MainActor [weak self] in
             guard let self else { return }
             let stream = await watchlistUpdates()
             for await value in stream {

@@ -1,7 +1,7 @@
 import Foundation
 import UIKit
 
-public struct MovieCollectionViewModel: Hashable {
+public struct MovieCollectionViewModel: Hashable, Sendable {
     public let id: String
     public let title: String
     public let subtitle: String

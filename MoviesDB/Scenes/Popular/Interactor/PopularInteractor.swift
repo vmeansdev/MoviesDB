@@ -4,8 +4,7 @@ import MovieDBUI
 
 protocol PopularInteractorProtocol: MovieListInteractorProtocol {}
 
-@MainActor
-protocol PopularInteractorOutput: AnyObject {
+protocol PopularInteractorOutput: AnyObject, Sendable {
     func didSelect(movie: Movie)
 }
 
@@ -52,7 +51,7 @@ actor PopularInteractor: PopularInteractorProtocol {
         guard let movie = popular.movies[safe: item] else {
             return
         }
-        await output.didSelect(movie: movie)
+        await MainActor.run { output.didSelect(movie: movie) }
     }
 
     func didToggleWatchlist(item: Int) async {
@@ -73,13 +72,17 @@ actor PopularInteractor: PopularInteractorProtocol {
 
     private func loadNextPage() {
         currentTask?.cancel()
-        currentTask = Task {
-            let nextPage = popular.currentPage + 1
-            if popular.currentPage == 0 {
-                await fetchInitialPages(startingAt: nextPage)
-            } else {
-                await fetchPopular(page: nextPage)
-            }
+        currentTask = Task { [weak self] in
+            await self?.performLoadNextPage()
+        }
+    }
+
+    private func performLoadNextPage() async {
+        let nextPage = popular.currentPage + 1
+        if popular.currentPage == 0 {
+            await fetchInitialPages(startingAt: nextPage)
+        } else {
+            await fetchPopular(page: nextPage)
         }
     }
 
@@ -156,11 +159,15 @@ actor PopularInteractor: PopularInteractorProtocol {
 
     private func startWatchlistObservationIfNeeded() {
         guard watchlistTask == nil else { return }
-        watchlistTask = Task {
-            let stream = await watchlistStore.itemsStream()
-            for await items in stream {
-                await updateWatchlist(items: items)
-            }
+        watchlistTask = Task { [weak self] in
+            await self?.observeWatchlist()
+        }
+    }
+
+    private func observeWatchlist() async {
+        let stream = await watchlistStore.itemsStream()
+        for await items in stream {
+            await updateWatchlist(items: items)
         }
     }
 

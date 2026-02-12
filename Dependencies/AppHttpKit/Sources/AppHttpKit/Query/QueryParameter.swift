@@ -2,7 +2,7 @@ import AnyCodable
 import Foundation
 
 @propertyWrapper
-public struct QueryParameter<T>: Sendable {
+public struct QueryParameter<T: Sendable>: Sendable {
     public var wrappedValue: T
     public var key: String
 

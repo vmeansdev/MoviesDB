@@ -1,6 +1,6 @@
 import Foundation
 
-public struct MovieDetailsMetadataItem: Identifiable, Equatable {
+public struct MovieDetailsMetadataItem: Identifiable, Equatable, Sendable {
     public let id: String
     public let title: String
     public let value: String

@@ -2,7 +2,7 @@ import MovieDBData
 import MovieDBUI
 import UIKit
 
-final class TopRatedCoordinator: Coordinator {
+final class TopRatedCoordinator: @MainActor Coordinator, @unchecked Sendable {
     private let rootViewController: UINavigationController
     private let serviceProvider: ServiceProviderProtocol
     private let coordinatorProvider: CoordinatorProviderProtocol

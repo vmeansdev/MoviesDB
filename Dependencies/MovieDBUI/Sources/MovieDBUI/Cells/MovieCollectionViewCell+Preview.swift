@@ -12,7 +12,7 @@ import UIKit
 
 extension MovieCollectionViewCell {
     public enum PreviewData {
-        static let viewModel = MovieCollectionViewModel(
+        @MainActor static let viewModel = MovieCollectionViewModel(
             id: "1",
             title: "The Great Expedition",
             subtitle: "2026 • Adventure",
@@ -23,7 +23,7 @@ extension MovieCollectionViewCell {
             isInWatchlist: false
         )
 
-        public static func viewModel(with id: String) -> MovieCollectionViewModel {
+        @MainActor public static func viewModel(with id: String) -> MovieCollectionViewModel {
             MovieCollectionViewModel(
                 id: id,
                 title: viewModel.title,

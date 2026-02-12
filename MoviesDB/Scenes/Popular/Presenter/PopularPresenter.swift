@@ -35,11 +35,11 @@ enum PopularState: Equatable, Sendable {
 }
 
 @MainActor
-protocol PopularPresenterProtocol {
+protocol PopularPresenterProtocol: Sendable {
     func present(state: PopularState) async
 }
 
-final class PopularPresenter: PopularPresenterProtocol {
+final class PopularPresenter: PopularPresenterProtocol, @unchecked Sendable {
     weak var view: MovieListPresentable?
     private let mapper: MovieListViewModelMapper
 
