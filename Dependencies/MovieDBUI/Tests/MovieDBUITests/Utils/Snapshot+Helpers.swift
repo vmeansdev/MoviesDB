@@ -7,6 +7,7 @@ public func assertSnapshot<Value: UIView>(
     size: CGSize = .zero,
     interfaceStyle: UserInterfaceStyle = .both,
     preferredContentSizeCategory: UIContentSizeCategory = .medium,
+    wait: TimeInterval = 0,
     record recording: Bool = false,
     timeout: TimeInterval = 5,
     fileID: StaticString = #fileID,
@@ -34,9 +35,14 @@ public func assertSnapshot<Value: UIView>(
         value.setNeedsLayout()
         value.layoutIfNeeded()
         viewController.view.layoutIfNeeded()
+
+        let strategy: Snapshotting<UIView, UIImage> = wait > 0
+            ? .wait(for: wait, on: .image)
+            : .image
+
         assertSnapshot(
-            of: window,
-            as: .image,
+            of: window as UIView,
+            as: strategy,
             named: [preferredContentSizeCategory.rawValue, style.name].joined(separator: "_"),
             record: shouldRecord,
             timeout: timeout,

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DESTINATION="platform=iOS Simulator,OS=26.2,name=iPhone 17 Pro"
+DESTINATION="platform=iOS Simulator,OS=18.2,name=iPhone 16 Pro"
 DERIVED_DATA_PATH="/tmp/DerivedData"
 
 xcodebuild -scheme MoviesDB -destination "$DESTINATION" -derivedDataPath "$DERIVED_DATA_PATH" test

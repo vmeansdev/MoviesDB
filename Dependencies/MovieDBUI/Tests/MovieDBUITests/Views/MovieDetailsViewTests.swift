@@ -2,6 +2,7 @@ import SnapshotTesting
 import SwiftUI
 import Testing
 import UIKit
+import Kingfisher
 @testable import MovieDBUI
 
 @MainActor
@@ -9,6 +10,7 @@ struct MovieDetailsViewTests {
     @Test
     func test_movieDetailsView_snapshot() {
         let environment = Environment()
+        environment.preloadImages()
         let view = environment.makeView()
         environment.contentSizes.forEach { contentSize in
             let hostingController = UIHostingController(rootView: view)
@@ -17,7 +19,8 @@ struct MovieDetailsViewTests {
                 of: hostingController.view,
                 size: environment.size,
                 interfaceStyle: .both,
-                preferredContentSizeCategory: contentSize
+                preferredContentSizeCategory: contentSize,
+                wait: 0.5
             )
         }
     }
@@ -48,5 +51,13 @@ private struct Environment {
                 )
             )
         )
+    }
+
+    func preloadImages() {
+        guard let pupURL = Bundle.module.url(forResource: "pup", withExtension: "jpg"),
+              let data = try? Data(contentsOf: pupURL),
+              let image = UIImage(data: data) else { return }
+        let resource = ImageResource(downloadURL: pupURL, cacheKey: pupURL.absoluteString)
+        ImageCache.default.store(image, forKey: resource.cacheKey)
     }
 }

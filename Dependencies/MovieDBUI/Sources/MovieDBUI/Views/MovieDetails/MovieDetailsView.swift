@@ -58,9 +58,17 @@ public struct MovieDetailsView: View {
     @ViewBuilder
     private var headerImage: some View {
         if let url = content.backdropURL ?? content.posterURL {
-            KFImage(url)
-                .resizable()
-                .scaledToFill()
+            if url.isFileURL,
+               let data = try? Data(contentsOf: url),
+               let image = UIImage(data: data) {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+            } else {
+                KFImage(url)
+                    .resizable()
+                    .scaledToFill()
+            }
         } else {
             Rectangle()
                 .fill(Color(.secondarySystemBackground))

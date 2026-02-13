@@ -14,10 +14,10 @@ This project depends on API keys and base URLs set in `Info.plist`.
 
 ## Build and Test
 ```bash
-xcodebuild -scheme MoviesDB -destination 'platform=iOS Simulator,OS=26.2,name=iPhone 17 Pro' test
+xcodebuild -scheme MoviesDB -destination 'platform=iOS Simulator,OS=18.2,name=iPhone 16 Pro' test
 ```
 
 Snapshot recording (MovieDBUI):
 ```bash
-SNAPSHOT_TESTING_RECORD=1 xcodebuild -workspace Dependencies/MovieDBUI/.swiftpm/xcode/package.xcworkspace -scheme MovieDBUI -destination 'platform=iOS Simulator,OS=26.2,name=iPhone 17 Pro' test
+SNAPSHOT_TESTING_RECORD=1 xcodebuild -workspace Dependencies/MovieDBUI/.swiftpm/xcode/package.xcworkspace -scheme MovieDBUI -destination 'platform=iOS Simulator,OS=18.2,name=iPhone 16 Pro' test
 ```
