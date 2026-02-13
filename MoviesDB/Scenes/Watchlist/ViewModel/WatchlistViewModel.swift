@@ -22,11 +22,6 @@ final class WatchlistViewModel {
         self.watchlistStore = watchlistStore
         self.uiAssets = uiAssets
         self.onSelect = onSelect
-        observeWatchlist()
-    }
-
-    @MainActor deinit {
-        observationTask?.cancel()
     }
 
     var emptyStateIcon: UIImage? { uiAssets.watchlistEmptyIcon }
@@ -44,7 +39,7 @@ final class WatchlistViewModel {
         }
     }
 
-    private func observeWatchlist() {
+    func startObserveWatchlist() {
         observationTask?.cancel()
         observationTask = Task { @MainActor in
             let stream = await watchlistStore.itemsStream()
@@ -54,5 +49,10 @@ final class WatchlistViewModel {
                 }
             }
         }
+    }
+
+    func stopObserveWatchlist() {
+        observationTask?.cancel()
+        observationTask = nil
     }
 }

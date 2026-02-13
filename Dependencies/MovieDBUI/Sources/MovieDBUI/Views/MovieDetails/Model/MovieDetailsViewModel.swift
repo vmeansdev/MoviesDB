@@ -37,11 +37,6 @@ public final class MovieDetailsViewModel {
         self.loadDetails = loadDetails
         self.watchlistUpdates = watchlistUpdates
         self.toggleWatchlistAction = toggleWatchlistAction
-        observeWatchlistIfNeeded()
-    }
-
-    @MainActor deinit {
-        watchlistTask?.cancel()
     }
 
     public func update(content: MovieDetailsContent) {
@@ -65,7 +60,7 @@ public final class MovieDetailsViewModel {
         }
     }
 
-    private func observeWatchlistIfNeeded() {
+    public func startObserveWatchlist() {
         guard let watchlistUpdates else { return }
         watchlistTask?.cancel()
         watchlistTask = Task { @MainActor [weak self] in
@@ -75,5 +70,10 @@ public final class MovieDetailsViewModel {
                 self.isInWatchlist = value
             }
         }
+    }
+
+    public func stopObserveWatchlist() {
+        watchlistTask?.cancel()
+        watchlistTask = nil
     }
 }

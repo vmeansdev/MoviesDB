@@ -21,6 +21,8 @@ public struct MovieDetailsView: View {
         .background(Color(.systemBackground))
         .ignoresSafeArea(.container, edges: .top)
         .task { await viewModel.loadDetailsIfNeeded() }
+        .onAppear { viewModel.startObserveWatchlist() }
+        .onDisappear { viewModel.stopObserveWatchlist() }
     }
 
     private var content: MovieDetailsContent { viewModel.content }

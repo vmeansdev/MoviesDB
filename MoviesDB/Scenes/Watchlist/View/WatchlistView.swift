@@ -27,6 +27,8 @@ struct WatchlistView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color(.systemBackground))
+            .onAppear { viewModel.startObserveWatchlist() }
+            .onDisappear { viewModel.stopObserveWatchlist() }
         }
     }
 
