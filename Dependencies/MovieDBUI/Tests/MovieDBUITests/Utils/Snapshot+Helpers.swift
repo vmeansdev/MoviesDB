@@ -1,6 +1,7 @@
 import SnapshotTesting
 import UIKit
 
+@MainActor
 public func assertSnapshot<Value: UIView>(
     of value: Value,
     size: CGSize = .zero,
@@ -26,13 +27,10 @@ public func assertSnapshot<Value: UIView>(
     window.makeKeyAndVisible()
 
     for style in interfaceStyle.uiUserInterfaceStyles {
-        window.overrideUserInterfaceStyle = style
         viewController.view.backgroundColor = .systemBackground
+        viewController.traitOverrides.preferredContentSizeCategory = preferredContentSizeCategory
         window.backgroundColor = .systemBackground
-
-        let traitCollection = UITraitCollection(preferredContentSizeCategory: preferredContentSizeCategory)
-        viewController.setOverrideTraitCollection(traitCollection, forChild: viewController)
-
+        window.overrideUserInterfaceStyle = style
         value.setNeedsLayout()
         value.layoutIfNeeded()
         viewController.view.layoutIfNeeded()

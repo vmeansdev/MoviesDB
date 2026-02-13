@@ -1,7 +1,7 @@
 import Foundation
 import MovieDBData
 
-final class MockMoviesService: MoviesServiceProtocol {
+final class MockMoviesService: MoviesServiceProtocol, @unchecked Sendable {
     private(set) var fetchPopularCalls: [MovieListOptions] = []
     var fetchPopularResult: Result<MovieList, Error> = .success(MovieList())
     var fetchPopularHandler: ((MovieListOptions) throws -> MovieList)?

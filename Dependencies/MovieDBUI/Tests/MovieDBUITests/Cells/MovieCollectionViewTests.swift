@@ -3,10 +3,10 @@ import SnapshotTesting
 import Testing
 import UIKit
 
+@MainActor
 struct MovieCollectionViewTests {
     @Test
-    @MainActor
-    func test_movieCollectionViewCell_whenConfigured_thenDisplaysMovie() async {
+    func test_movieCollectionViewCell_whenConfigured_thenDisplaysMovie() {
         let environment = Environment()
         let size = CGSize(width: UIScreen.main.bounds.width, height: 250.0)
         let sut = environment.createSUT(size)
@@ -21,6 +21,7 @@ struct MovieCollectionViewTests {
     }
 }
 
+@MainActor
 private struct Environment {
     let contentSizes: [UIContentSizeCategory] = [.medium, .accessibilityMedium, .accessibilityExtraLarge]
 

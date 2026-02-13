@@ -4,10 +4,10 @@ import Testing
 import UIKit
 @testable import MovieDBUI
 
+@MainActor
 struct MovieDetailsViewTests {
     @Test
-    @MainActor
-    func test_movieDetailsView_snapshot() async {
+    func test_movieDetailsView_snapshot() {
         let environment = Environment()
         let view = environment.makeView()
         environment.contentSizes.forEach { contentSize in
@@ -23,11 +23,11 @@ struct MovieDetailsViewTests {
     }
 }
 
+@MainActor
 private struct Environment {
     let contentSizes: [UIContentSizeCategory] = [.medium, .accessibilityMedium, .accessibilityExtraLarge]
     let size = UIScreen.main.bounds.size
 
-    @MainActor
     func makeView() -> MovieDetailsView {
         let pupURL = Bundle.module.url(forResource: "pup", withExtension: "jpg")
         return MovieDetailsView(

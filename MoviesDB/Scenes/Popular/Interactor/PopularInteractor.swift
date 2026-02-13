@@ -4,6 +4,7 @@ import MovieDBUI
 
 protocol PopularInteractorProtocol: MovieListInteractorProtocol {}
 
+@MainActor
 protocol PopularInteractorOutput: AnyObject, Sendable {
     func didSelect(movie: Movie)
 }

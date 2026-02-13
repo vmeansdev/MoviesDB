@@ -4,10 +4,10 @@ import MovieDBData
 import MovieDBUI
 @testable import MoviesDB
 
+@MainActor
 struct TopRatedCoordinatorTests {
     @Test
-    @MainActor
-    func test_start_shouldSetTopRatedViewControllerAsRoot() async {
+    func test_start_shouldSetTopRatedViewControllerAsRoot() {
         let navigationController = UINavigationController()
         let serviceProvider = MockServiceProvider(moviesService: MockMoviesService())
         let coordinatorProvider = MockCoordinatorProvider()
@@ -23,7 +23,6 @@ struct TopRatedCoordinatorTests {
 
         sut.start()
 
-        let didSetRoot = await waitUntil { navigationController.viewControllers.first is TopRatedViewController }
-        #expect(didSetRoot)
+        #expect(navigationController.viewControllers.first is TopRatedViewController)
     }
 }

@@ -2,7 +2,8 @@ import MovieDBData
 import MovieDBUI
 import UIKit
 
-final class PopularCoordinator: @MainActor Coordinator, @unchecked Sendable {
+@MainActor
+final class PopularCoordinator: Coordinator, @unchecked Sendable {
     private let rootViewController: UINavigationController
     private let serviceProvider: ServiceProviderProtocol
     private let coordinatorProvider: CoordinatorProviderProtocol

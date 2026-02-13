@@ -48,6 +48,7 @@ private struct MockMoviesService: MoviesServiceProtocol {
     }
 }
 
+@MainActor
 private final class MockOutput: TopRatedInteractorOutput {
     func didSelect(movie: Movie) {
         // no-op

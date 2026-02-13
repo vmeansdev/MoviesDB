@@ -34,15 +34,14 @@ extension Localizable {
     var movieDetailsGenresLabel: String { string(forKey: "movie_details_genres_label") }
 }
 
-final class Localizable {
-    private lazy var bundles: [Bundle] = {
-        let current = Bundle(for: type(of: self))
-        return current == Bundle.main ? [Bundle.main] : [Bundle.main, current]
-    }()
-
+final class Localizable: @unchecked Sendable {
+    private let bundles: [Bundle]
     private let table = "Localizable"
 
-    private init() { }
+    private init() {
+        let current = Bundle(for: type(of: self))
+        self.bundles = current == Bundle.main ? [Bundle.main] : [Bundle.main, current]
+    }
 }
 
 private extension Localizable {
@@ -50,15 +49,9 @@ private extension Localizable {
 
     func string(forKey key: String) -> String {
         for bundle in bundles {
-            let result = String(localized: .init(String.LocalizationValue(key), table: table, bundle: bundle))
-            if result != key {
-                return result
-            }
+            let result = NSLocalizedString(key, tableName: table, bundle: bundle, value: key, comment: "")
+            if result != key { return result }
         }
         return .empty
     }
-}
-
-private extension Bundle {
-    func localizedString(forKey key: String, table: String) -> String? { nil }
 }

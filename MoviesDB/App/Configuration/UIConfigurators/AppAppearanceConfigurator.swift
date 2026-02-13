@@ -1,9 +1,11 @@
 import UIKit
 
+@MainActor
 protocol AppAppearanceConfiguratorProtocol {
     func configure()
 }
 
+@MainActor
 struct AppAppearanceConfigurator: AppAppearanceConfiguratorProtocol {
     func configure() {
         let navigationAppearance = UINavigationBarAppearance()

@@ -1,7 +1,8 @@
 import MovieDBUI
 import UIKit
 
-final class RootCoordinator: @MainActor Coordinator {
+@MainActor
+final class RootCoordinator: Coordinator {
     private let window: UIWindow?
     private let windowConfigurator: WindowConfiguratorProtocol
     private let appearanceConfigurator: AppAppearanceConfiguratorProtocol

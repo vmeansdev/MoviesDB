@@ -2,7 +2,8 @@ import MovieDBData
 import MovieDBUI
 import UIKit
 
-final class MovieDetailsCoordinator: @MainActor Coordinator {
+@MainActor
+final class MovieDetailsCoordinator: Coordinator {
     private let rootViewController: UINavigationController
     private let movie: Movie
     private let dependenciesProvider: DependenciesProviderProtocol

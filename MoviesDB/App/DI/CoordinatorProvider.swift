@@ -2,6 +2,7 @@ import MovieDBData
 import MovieDBUI
 import UIKit
 
+@MainActor
 protocol CoordinatorProviderProtocol {
     func rootCoordinator() -> Coordinator
     func popularCoordinator() -> Coordinator
@@ -11,6 +12,7 @@ protocol CoordinatorProviderProtocol {
     func allCoordinators() -> [Coordinator]
 }
 
+@MainActor
 final class CoordinatorProvider: CoordinatorProviderProtocol {
     private let window: UIWindow?
     private let serviceProvider: ServiceProviderProtocol

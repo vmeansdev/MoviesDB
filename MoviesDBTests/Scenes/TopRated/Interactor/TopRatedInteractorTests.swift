@@ -7,7 +7,7 @@ struct TopRatedInteractorTests {
     @Test
     @MainActor
     func test_viewDidLoad_whenInitial_shouldFetchTwoPagesAndPresentLoadedState() async throws {
-        let environment = await Environment.make()
+        let environment = Environment.make()
         environment.service.fetchTopRatedHandler = { options in
             options.page == 1 ? environment.page1 : environment.page2
         }
@@ -32,7 +32,7 @@ struct TopRatedInteractorTests {
     @Test
     @MainActor
     func test_didSelect_whenValidIndex_shouldNotifyOutput() async {
-        let environment = await Environment.make()
+        let environment = Environment.make()
         environment.service.fetchTopRatedHandler = { _ in environment.page1 }
 
         await environment.sut.viewDidLoad()
@@ -47,7 +47,7 @@ struct TopRatedInteractorTests {
         #expect(didLoad)
 
         await environment.sut.didSelect(item: 0)
-        let selected = await environment.output.selectedMovies
+        let selected = environment.output.selectedMovies
         #expect(selected.count == 1)
         #expect(selected.first?.id == environment.movie1.id)
     }
@@ -55,7 +55,7 @@ struct TopRatedInteractorTests {
     @Test
     @MainActor
     func test_loadMore_whenNoMoreItems_shouldNotFetch() async {
-        let environment = await Environment.make()
+        let environment = Environment.make()
         environment.service.fetchTopRatedHandler = { _ in environment.noMoreItemsPage }
 
         await environment.sut.viewDidLoad()
@@ -134,7 +134,7 @@ private struct Environment {
             output: output,
             language: "en"
         )
-        var environment = Environment(
+        let environment = Environment(
             sut: interactor,
             presenter: presenter,
             service: service,

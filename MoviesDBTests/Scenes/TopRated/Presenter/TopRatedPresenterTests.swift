@@ -8,7 +8,7 @@ struct TopRatedPresenterTests {
     @Test
     @MainActor
     func test_presentLoaded_shouldDisplayTitleAndMovies() async {
-        let environment = await Environment.make()
+        let environment = Environment.make()
         let state = TopRatedState.loaded(environment.loadedTopRated)
 
         await environment.sut.present(state: state)
@@ -21,7 +21,7 @@ struct TopRatedPresenterTests {
     @Test
     @MainActor
     func test_presentLoading_shouldDisplayLoading() async {
-        let environment = await Environment.make()
+        let environment = Environment.make()
 
         await environment.sut.present(state: .loading(isInitial: true))
 
@@ -31,7 +31,7 @@ struct TopRatedPresenterTests {
     @Test
     @MainActor
     func test_presentError_shouldDisplayError() async {
-        let environment = await Environment.make()
+        let environment = Environment.make()
         let error = NSError(domain: "test", code: 1)
 
         await environment.sut.present(state: .error(error, nil))

@@ -1,5 +1,6 @@
 import UIKit
 
+@MainActor
 public protocol TabCoordinator: AnyObject {
     func start()
 }
@@ -16,6 +17,7 @@ public struct TabItemConfig {
     }
 }
 
+@MainActor
 public final class TabBarNavigationManager: NSObject, UITabBarControllerDelegate {
     private let tabBarController: UITabBarController
     private var tabItems: [TabItemConfig] = []

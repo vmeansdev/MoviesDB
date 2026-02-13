@@ -2,10 +2,10 @@
 import Testing
 import UIKit
 
+@MainActor
 struct TabBarNavigationManagerTests {
     @Test
-    @MainActor
-    func test_init_setsTabBarDelegate() async {
+    func test_init_setsTabBarDelegate() {
         let tabBarController = UITabBarController()
         let manager = TabBarNavigationManager(tabBarController: tabBarController)
 
@@ -13,8 +13,7 @@ struct TabBarNavigationManagerTests {
     }
 
     @Test
-    @MainActor
-    func test_configTabs_startsFirstCoordinatorOnly() async {
+    func test_configTabs_startsFirstCoordinatorOnly() {
         let environment = Environment()
 
         environment.manager.configTabs(tabItems: environment.tabItems, selected: nil)
@@ -24,8 +23,7 @@ struct TabBarNavigationManagerTests {
     }
 
     @Test
-    @MainActor
-    func test_configTabs_withSelected_startsSelectedCoordinatorOnly() async {
+    func test_configTabs_withSelected_startsSelectedCoordinatorOnly() {
         let environment = Environment()
 
         environment.manager.configTabs(tabItems: environment.tabItems, selected: environment.tabItems[1])
@@ -35,8 +33,7 @@ struct TabBarNavigationManagerTests {
     }
 
     @Test
-    @MainActor
-    func test_tabSelection_startsCoordinatorOnFirstSelect() async {
+    func test_tabSelection_startsCoordinatorOnFirstSelect() {
         let environment = Environment()
         environment.manager.configTabs(tabItems: environment.tabItems, selected: nil)
 
@@ -47,8 +44,7 @@ struct TabBarNavigationManagerTests {
     }
 
     @Test
-    @MainActor
-    func test_tabSelection_doesNotStartCoordinatorTwice() async {
+    func test_tabSelection_doesNotStartCoordinatorTwice() {
         let environment = Environment()
         environment.manager.configTabs(tabItems: environment.tabItems, selected: nil)
 

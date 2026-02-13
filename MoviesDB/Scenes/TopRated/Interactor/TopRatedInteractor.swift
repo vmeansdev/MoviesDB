@@ -4,6 +4,7 @@ import MovieDBUI
 
 protocol TopRatedInteractorProtocol: MovieListInteractorProtocol {}
 
+@MainActor
 protocol TopRatedInteractorOutput: AnyObject, Sendable {
     func didSelect(movie: Movie)
 }

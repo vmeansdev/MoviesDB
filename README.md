@@ -40,15 +40,15 @@ MoviesDB is a Swift 6 iOS application that delivers a fast, elegant movie browsi
   ```
 - App tests:
   ```bash
-  xcodebuild -scheme MoviesDB -destination 'platform=iOS Simulator,name=iPhone 17 Pro' test
+  xcodebuild -scheme MoviesDB -destination 'platform=iOS Simulator,OS=26.2,name=iPhone 17 Pro' test
   ```
 - UI package tests:
   ```bash
-  xcodebuild -scheme MovieDBUI -destination 'platform=iOS Simulator,name=iPhone 17 Pro' test
+  SNAPSHOT_TESTING_RECORD=0 xcodebuild -workspace Dependencies/MovieDBUI/.swiftpm/xcode/package.xcworkspace -scheme MovieDBUI -destination 'platform=iOS Simulator,OS=26.2,name=iPhone 17 Pro' test
   ```
 - Data package tests:
   ```bash
-  xcodebuild -scheme MovieDBData -destination 'platform=iOS Simulator,name=iPhone 17 Pro' test
+  swift test --package-path Dependencies/MovieDBData
   ```
 
 **Documentation**

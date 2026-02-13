@@ -59,6 +59,9 @@ open class MovieListViewController: UIViewController {
         view.backgroundColor = .systemBackground
         makeLayout()
         setupDataSource()
+        registerForTraitChanges([UITraitHorizontalSizeClass.self, UITraitUserInterfaceIdiom.self]) { [weak self] (_: MovieListViewController, _: UITraitCollection) in
+            self?.updateLayoutIfNeeded()
+        }
         Task { await interactor.viewDidLoad() }
     }
 
@@ -73,11 +76,6 @@ open class MovieListViewController: UIViewController {
             collectionView.contentInset = insets
             collectionView.scrollIndicatorInsets = insets
         }
-    }
-
-    open override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-        super.traitCollectionDidChange(previousTraitCollection)
-        updateLayoutIfNeeded()
     }
 
     open override func viewWillDisappear(_ animated: Bool) {
@@ -161,7 +159,8 @@ private extension MovieListViewController {
         item.contentInsets = .zero
 
         let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(250))
-        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitem: item, count: columns)
+        let items = Array(repeating: item, count: columns)
+        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: items)
 
         let section = NSCollectionLayoutSection(group: group)
         section.contentInsets = .zero

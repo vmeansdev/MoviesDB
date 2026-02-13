@@ -5,7 +5,7 @@ import Testing
 struct WatchlistStoreTests {
     @Test
     func test_addAndRemove_updatesItems() async {
-        let store = WatchlistStore(userDefaults: makeUserDefaults(), storageKey: "watchlist.test.addremove")
+        let store = WatchlistStore(storageKey: "watchlist.test.addremove.\(UUID().uuidString)")
         let movie = Movie(
             adult: false,
             backdropPath: nil,
@@ -35,7 +35,7 @@ struct WatchlistStoreTests {
 
     @Test
     func test_toggle_addsAndRemoves() async {
-        let store = WatchlistStore(userDefaults: makeUserDefaults(), storageKey: "watchlist.test.toggle")
+        let store = WatchlistStore(storageKey: "watchlist.test.toggle.\(UUID().uuidString)")
         let movie = Movie(
             adult: false,
             backdropPath: nil,
@@ -62,8 +62,8 @@ struct WatchlistStoreTests {
 
     @Test
     func test_persistsToUserDefaults() async {
-        let userDefaults = makeUserDefaults()
-        let key = "watchlist.test.persist"
+        let key = "watchlist.test.persist.\(UUID().uuidString)"
+        defer { UserDefaults.standard.removeObject(forKey: key) }
         let movie = Movie(
             adult: false,
             backdropPath: nil,
@@ -81,17 +81,48 @@ struct WatchlistStoreTests {
             voteCount: 3
         )
 
-        let store = WatchlistStore(userDefaults: userDefaults, storageKey: key)
+        let store = WatchlistStore(storageKey: key)
         await store.add(movie: movie)
 
-        let newStore = WatchlistStore(userDefaults: userDefaults, storageKey: key)
+        let newStore = WatchlistStore(storageKey: key)
         let items = await newStore.items()
         #expect(items.count == 1)
         #expect(items.first?.id == 99)
     }
-}
 
-private func makeUserDefaults() -> UserDefaults {
-    let suiteName = "watchlist.tests.\(UUID().uuidString)"
-    return UserDefaults(suiteName: suiteName) ?? .standard
+    @Test
+    func test_itemsStream_yieldsInitialAndUpdates() async {
+        let store = WatchlistStore(storageKey: "watchlist.test.stream.\(UUID().uuidString)")
+        let movie = Movie(
+            adult: false,
+            backdropPath: nil,
+            genreIDS: [4],
+            id: 123,
+            originalLanguage: "en",
+            originalTitle: "Stream",
+            overview: "",
+            popularity: 4,
+            posterPath: "/poster4.jpg",
+            releaseDate: "2025-04-01",
+            title: "Stream",
+            video: false,
+            voteAverage: 8,
+            voteCount: 4
+        )
+
+        let stream = await store.itemsStream()
+        var iterator = stream.makeAsyncIterator()
+
+        let initial = await iterator.next()
+        #expect(initial?.isEmpty == true)
+
+        await store.add(movie: movie)
+        let afterAdd = await iterator.next()
+        #expect(afterAdd?.count == 1)
+        #expect(afterAdd?.first?.id == 123)
+
+        await store.remove(id: 123)
+        let afterRemove = await iterator.next()
+        #expect(afterRemove?.isEmpty == true)
+    }
 }

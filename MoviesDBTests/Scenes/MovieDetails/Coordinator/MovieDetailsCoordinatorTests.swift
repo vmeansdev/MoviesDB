@@ -3,10 +3,10 @@ import Testing
 import UIKit
 @testable import MoviesDB
 
+@MainActor
 struct MovieDetailsCoordinatorTests {
     @Test
-    @MainActor
-    func test_start_shouldPushMovieDetailsViewController() async {
+    func test_start_shouldPushMovieDetailsViewController() {
         let navigationController = UINavigationController()
         let movie = Movie(
             adult: false,
@@ -33,7 +33,6 @@ struct MovieDetailsCoordinatorTests {
 
         sut.start()
 
-        let didPush = await waitUntil { navigationController.topViewController is MovieDetailsViewController }
-        #expect(didPush)
+        #expect(navigationController.topViewController is MovieDetailsViewController)
     }
 }

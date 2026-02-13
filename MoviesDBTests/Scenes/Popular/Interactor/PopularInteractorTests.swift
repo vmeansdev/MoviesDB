@@ -135,7 +135,7 @@ private struct Environment {
             output: output,
             language: "en"
         )
-        var environment = Environment(
+        let environment = Environment(
             sut: interactor,
             presenter: presenter,
             service: service,

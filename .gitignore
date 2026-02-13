@@ -7,6 +7,8 @@
 *.perspectivev3
 *.xcuserstate
 *.xcworkspace/
+!Dependencies/MovieDBUI/.swiftpm/xcode/package.xcworkspace/
+!Dependencies/MovieDBUI/.swiftpm/xcode/package.xcworkspace/**
 project.xcworkspace/
 xcuserdata/
 .build/
