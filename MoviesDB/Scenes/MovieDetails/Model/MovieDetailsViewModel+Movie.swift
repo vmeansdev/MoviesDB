@@ -14,12 +14,16 @@ extension MovieDetailsViewModel {
         let watchlistUpdates: (@Sendable () async -> AsyncStream<Bool>)? = {
             guard let watchlistStore else { return AsyncStream { $0.finish() } }
             return AsyncStream { continuation in
-                Task {
+                let task = Task {
                     let stream = await watchlistStore.itemsStream()
                     for await items in stream {
+                        if Task.isCancelled { break }
                         continuation.yield(items.contains { $0.id == movie.id })
                     }
                     continuation.finish()
+                }
+                continuation.onTermination = { _ in
+                    task.cancel()
                 }
             }
         }
