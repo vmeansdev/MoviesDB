@@ -37,6 +37,7 @@ public struct MovieCollectionViewModel: Hashable, Sendable {
         hasher.combine(subtitle)
         hasher.combine(posterURL)
         hasher.combine(watchlistIcon)
+        hasher.combine(watchlistSelectedIcon)
         hasher.combine(watchlistTintColor)
         hasher.combine(isInWatchlist)
     }
@@ -47,6 +48,7 @@ public struct MovieCollectionViewModel: Hashable, Sendable {
             && lhs.subtitle == rhs.subtitle
             && lhs.posterURL == rhs.posterURL
             && lhs.watchlistIcon == rhs.watchlistIcon
+            && lhs.watchlistSelectedIcon == rhs.watchlistSelectedIcon
             && lhs.watchlistTintColor == rhs.watchlistTintColor
             && lhs.isInWatchlist == rhs.isInWatchlist
     }
