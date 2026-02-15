@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 @available(iOS 13.0, *)
 public struct UIViewPreview<View: UIView>: UIViewRepresentable {
@@ -14,8 +15,11 @@ public struct UIViewPreview<View: UIView>: UIViewRepresentable {
     }
 
     public func updateUIView(_ view: UIView, context: Context) {
-        view.setContentHuggingPriority(.defaultHigh, for: .horizontal)
-        view.setContentHuggingPriority(.defaultHigh, for: .vertical)
+        view.setContentHuggingPriority(Constants.contentHuggingPriority, for: .horizontal)
+        view.setContentHuggingPriority(Constants.contentHuggingPriority, for: .vertical)
     }
 }
 
+private enum Constants {
+    static let contentHuggingPriority = UILayoutPriority.defaultHigh
+}

@@ -48,6 +48,8 @@ public final class MovieDetailsViewModel {
     }
 
     public func toggleWatchlist() async {
+        guard toggleWatchlistAction != nil else { return }
+        isInWatchlist.toggle()
         await toggleWatchlistAction?()
     }
 

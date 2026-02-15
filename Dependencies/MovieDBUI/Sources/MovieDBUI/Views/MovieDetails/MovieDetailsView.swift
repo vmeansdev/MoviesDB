@@ -11,15 +11,16 @@ public struct MovieDetailsView: View {
 
     public var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: Constants.contentStackSpacing) {
                 header
                 detailsCard
                 overviewSection
             }
-            .padding(.bottom, 24)
+            .padding(.bottom, Constants.contentBottomPadding)
         }
         .background(Color(.systemBackground))
         .ignoresSafeArea(.container, edges: .top)
+        .navigationBarTitleDisplayMode(.inline)
         .task { await viewModel.loadDetailsIfNeeded() }
         .onAppear { viewModel.startObserveWatchlist() }
         .onDisappear { viewModel.stopObserveWatchlist() }
@@ -33,20 +34,20 @@ public struct MovieDetailsView: View {
                 .accessibilityLabel(Text(headerImageAccessibilityLabel))
                 .accessibilityAddTraits(.isImage)
             LinearGradient(
-                gradient: Gradient(colors: [Color.black.opacity(0.6), Color.black.opacity(0.0)]),
+                gradient: Gradient(colors: [Color.black.opacity(Constants.headerGradientBottomOpacity), Color.black.opacity(Constants.headerGradientTopOpacity)]),
                 startPoint: .bottom,
                 endPoint: .top
             )
             .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: Constants.headerTitleSpacing) {
                 Text(content.title)
-                    .font(.system(size: 32, weight: .bold))
+                    .font(.system(size: Constants.headerTitleSize, weight: .bold))
                     .foregroundColor(.white)
             }
-            .padding(16)
+            .padding(Constants.headerPadding)
         }
         .frame(maxWidth: .infinity)
-        .aspectRatio(16.0 / 9.0, contentMode: .fit)
+        .aspectRatio(Constants.headerAspectRatio, contentMode: .fit)
         .clipped()
         .overlay(alignment: .bottomTrailing) {
             if watchlistIcon != nil {
@@ -76,10 +77,10 @@ public struct MovieDetailsView: View {
     }
 
     private var detailsCard: some View {
-        HStack(alignment: .top, spacing: 16) {
-            VStack(alignment: .leading, spacing: 10) {
+        HStack(alignment: .top, spacing: Constants.detailsCardSpacing) {
+            VStack(alignment: .leading, spacing: Constants.detailsMetadataSpacing) {
                 ForEach(content.metadata) { item in
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: Constants.detailsMetadataItemSpacing) {
                         Text(item.title)
                             .font(.caption)
                             .foregroundColor(.secondary)
@@ -91,29 +92,20 @@ public struct MovieDetailsView: View {
                     .accessibilityLabel(Text(MovieDBUILocalizable.format(.metadataAccessibilityFormat, item.title, item.value)))
                 }
             }
-            .padding(.top, 4)
+            .padding(.top, Constants.detailsCardTopPadding)
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 8)
+        .padding(.horizontal, Constants.detailsCardHorizontalPadding)
+        .padding(.top, Constants.detailsCardContentTopPadding)
     }
 
     private var watchlistButton: some View {
-        Button {
+        RoundButtonView(icon: watchlistIcon, tintColor: viewModel.watchlistTintColor) {
             Task { await viewModel.toggleWatchlist() }
-        } label: {
-            if let icon = watchlistIcon {
-                Image(uiImage: icon)
-                    .renderingMode(.template)
-                    .foregroundColor(Color(viewModel.watchlistTintColor))
-                    .padding(10)
-                    .background(Color.black.opacity(0.35))
-                    .clipShape(Circle())
-            }
         }
         .accessibilityLabel(Text(watchlistAccessibilityLabel))
         .accessibilityValue(Text(watchlistAccessibilityValue))
         .accessibilityHint(Text(MovieDBUILocalizable.string(.watchlistAccessibilityHint)))
-        .padding(16)
+        .padding(Constants.watchlistButtonPadding)
     }
 
     private var watchlistIcon: UIImage? {
@@ -124,14 +116,14 @@ public struct MovieDetailsView: View {
     }
 
     private var overviewSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: Constants.overviewSpacing) {
             Text(content.overviewTitle)
                 .font(.title2.weight(.semibold))
             Text(content.overview)
                 .font(.body)
                 .foregroundColor(.primary)
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, Constants.overviewHorizontalPadding)
         .accessibilityElement(children: .combine)
     }
 
@@ -153,4 +145,24 @@ public struct MovieDetailsView: View {
             ? MovieDBUILocalizable.string(.watchlistAccessibilityValueIn)
             : MovieDBUILocalizable.string(.watchlistAccessibilityValueOut)
     }
+}
+
+private enum Constants {
+    static let contentStackSpacing: CGFloat = 20
+    static let contentBottomPadding: CGFloat = 24
+    static let headerGradientBottomOpacity: CGFloat = 0.6
+    static let headerGradientTopOpacity: CGFloat = 0
+    static let headerTitleSpacing: CGFloat = 6
+    static let headerTitleSize: CGFloat = 32
+    static let headerPadding: CGFloat = 16
+    static let headerAspectRatio: CGFloat = 16.0 / 9.0
+    static let detailsCardSpacing: CGFloat = 16
+    static let detailsMetadataSpacing: CGFloat = 10
+    static let detailsMetadataItemSpacing: CGFloat = 2
+    static let detailsCardTopPadding: CGFloat = 4
+    static let detailsCardHorizontalPadding: CGFloat = 16
+    static let detailsCardContentTopPadding: CGFloat = 8
+    static let watchlistButtonPadding: CGFloat = 16
+    static let overviewSpacing: CGFloat = 10
+    static let overviewHorizontalPadding: CGFloat = 16
 }
