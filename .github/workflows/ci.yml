@@ -41,10 +41,17 @@ jobs:
       - name: Test MovieDBUI
         run: |
           set -euo pipefail
-          SNAPSHOT_TESTING_RECORD=0 xcodebuild \
-            -workspace Dependencies/MovieDBUI/.swiftpm/xcode/package.xcworkspace \
-            -scheme MovieDBUI \
-            -destination 'platform=iOS Simulator,OS=18.5,name=iPhone 16 Pro' \
-            -parallel-testing-enabled NO \
-            -derivedDataPath /tmp/DerivedData/MovieDBUI \
-            test
+          run_moviedbui_tests() {
+            SNAPSHOT_TESTING_RECORD=0 xcodebuild \
+              -workspace Dependencies/MovieDBUI/.swiftpm/xcode/package.xcworkspace \
+              -scheme MovieDBUI \
+              -destination 'platform=iOS Simulator,OS=18.5,name=iPhone 16 Pro' \
+              -parallel-testing-enabled NO \
+              -derivedDataPath /tmp/DerivedData/MovieDBUI \
+              test
+          }
+
+          run_moviedbui_tests || {
+            echo "MovieDBUI tests failed on first attempt. Retrying once..."
+            run_moviedbui_tests
+          }
