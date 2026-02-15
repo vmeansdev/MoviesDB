@@ -1,5 +1,6 @@
 import MovieDBUI
 
+@MainActor
 protocol AssetsProviderProtocol {
     var uiAssets: MovieDBUIAssetsProtocol { get }
 }
