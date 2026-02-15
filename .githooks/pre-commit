@@ -1,0 +1,19 @@
+#!/bin/sh
+
+set -eu
+
+CONFIG_FILE="MoviesDB/App/Configuration/Production.xcconfig"
+EXPECTED_PATTERN='^API_KEY[[:space:]]*=[[:space:]]*YOUR_API_KEY[[:space:]]*$'
+
+# Validate the staged version that is about to be committed.
+if ! git cat-file -e ":$CONFIG_FILE" 2>/dev/null; then
+  exit 0
+fi
+
+if git show ":$CONFIG_FILE" | grep -Eq "$EXPECTED_PATTERN"; then
+  exit 0
+fi
+
+echo "ERROR: $CONFIG_FILE must contain 'API_KEY = YOUR_API_KEY' in committed changes."
+echo "Commit aborted to prevent leaking a real API key."
+exit 1
