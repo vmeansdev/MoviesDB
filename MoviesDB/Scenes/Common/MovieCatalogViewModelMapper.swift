@@ -9,7 +9,7 @@ protocol MovieCatalogLoadedState {
     var watchlistIds: Set<Int> { get }
 }
 
-protocol MovieCatalogViewModelMapping: Sendable {
+protocol MovieCatalogViewModelMapping {
     func makeMovie(movie: Movie, isInWatchlist: Bool) -> MovieCollectionViewModel
     func makeMovies(from loaded: MovieCatalogLoadedState) -> [MovieCollectionViewModel]
 }

@@ -3,6 +3,7 @@ import Foundation
 import MovieDBData
 import MovieDBUI
 
+@MainActor
 protocol MovieCatalogInteractorOutput: AnyObject, Sendable {
     func didSelect(movie: Movie)
 }
@@ -65,7 +66,7 @@ actor MovieCatalogInteractor: MovieCatalogInteractorProtocol {
 
     func didSelect(item: Int) async {
         guard let movie = loadedState.movies[safe: item] else { return }
-        await MainActor.run { output.didSelect(movie: movie) }
+        await output.didSelect(movie: movie)
     }
 
     func didToggleWatchlist(item: Int) async {
