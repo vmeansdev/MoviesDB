@@ -2,13 +2,13 @@ import Foundation
 import MovieDBData
 
 final class MockMoviesService: MoviesServiceProtocol, @unchecked Sendable {
-    private(set) var fetchPopularCalls: [MovieListOptions] = []
-    var fetchPopularResult: Result<MovieList, Error> = .success(MovieList())
-    var fetchPopularHandler: ((MovieListOptions) throws -> MovieList)?
+    private(set) var fetchPopularCalls: [MovieCatalogOptions] = []
+    var fetchPopularResult: Result<MovieCatalog, Error> = .success(MovieCatalog())
+    var fetchPopularHandler: ((MovieCatalogOptions) throws -> MovieCatalog)?
 
-    private(set) var fetchTopRatedCalls: [MovieListOptions] = []
-    var fetchTopRatedResult: Result<MovieList, Error> = .success(MovieList())
-    var fetchTopRatedHandler: ((MovieListOptions) throws -> MovieList)?
+    private(set) var fetchTopRatedCalls: [MovieCatalogOptions] = []
+    var fetchTopRatedResult: Result<MovieCatalog, Error> = .success(MovieCatalog())
+    var fetchTopRatedHandler: ((MovieCatalogOptions) throws -> MovieCatalog)?
     private(set) var fetchDetailsCalls: [Int] = []
     var fetchDetailsResult: Result<MovieDetails, Error> = .success(
         MovieDetails(
@@ -29,7 +29,7 @@ final class MockMoviesService: MoviesServiceProtocol, @unchecked Sendable {
     )
     var fetchDetailsHandler: ((Int) throws -> MovieDetails)?
 
-    func fetchPopular(options: MovieListOptions) async throws -> MovieList {
+    func fetchPopular(options: MovieCatalogOptions) async throws -> MovieCatalog {
         fetchPopularCalls.append(options)
         if let handler = fetchPopularHandler {
             return try handler(options)
@@ -37,7 +37,7 @@ final class MockMoviesService: MoviesServiceProtocol, @unchecked Sendable {
         return try fetchPopularResult.get()
     }
 
-    func fetchTopRated(options: MovieListOptions) async throws -> MovieList {
+    func fetchTopRated(options: MovieCatalogOptions) async throws -> MovieCatalog {
         fetchTopRatedCalls.append(options)
         if let handler = fetchTopRatedHandler {
             return try handler(options)

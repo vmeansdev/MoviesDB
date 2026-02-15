@@ -6,12 +6,6 @@ struct WatchlistView: View {
     @Bindable private var viewModel: WatchlistViewModel
     @SwiftUI.Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
-    private enum Constants {
-        static let gridMinItemWidth: CGFloat = 200
-        static let maxGridColumns = 6
-        static let minGridColumns = 2
-    }
-
     init(viewModel: WatchlistViewModel) {
         self.viewModel = viewModel
     }
@@ -36,7 +30,9 @@ struct WatchlistView: View {
         List {
             ForEach(viewModel.items, id: \.id) { movie in
                 WatchlistRow(
-                    movie: movie,
+                    title: movie.title,
+                    releaseDate: movie.releaseDate,
+                    posterURL: viewModel.posterURL(for: movie),
                     heartIcon: viewModel.heartIcon,
                     heartFilledIcon: viewModel.heartFilledIcon,
                     tintColor: viewModel.watchlistTintColor,
@@ -54,10 +50,12 @@ struct WatchlistView: View {
 
     private func grid(columns: Int) -> some View {
         ScrollView {
-            LazyVGrid(columns: gridColumns(count: columns), spacing: 0) {
+            LazyVGrid(columns: gridColumns(count: columns), spacing: Constants.gridSpacing) {
                 ForEach(viewModel.items, id: \.id) { movie in
                     WatchlistRow(
-                        movie: movie,
+                        title: movie.title,
+                        releaseDate: movie.releaseDate,
+                        posterURL: viewModel.posterURL(for: movie),
                         heartIcon: viewModel.heartIcon,
                         heartFilledIcon: viewModel.heartFilledIcon,
                         tintColor: viewModel.watchlistTintColor,
@@ -77,13 +75,13 @@ struct WatchlistView: View {
     }
 
     private var emptyState: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: Constants.emptyStateSpacing) {
             if let icon = viewModel.emptyStateIcon {
                 Image(uiImage: icon)
                     .renderingMode(.template)
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 56, height: 56)
+                    .frame(width: Constants.emptyStateIconSize, height: Constants.emptyStateIconSize)
                     .foregroundColor(.secondary)
                     .accessibilityLabel(Text(String.localizable.watchlistEmptyIconAccessibilityLabel))
             }
@@ -95,7 +93,7 @@ struct WatchlistView: View {
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
         }
-        .padding(24)
+        .padding(Constants.emptyStatePadding)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
@@ -111,7 +109,7 @@ struct WatchlistView: View {
 
     private func gridColumnsCount(size: CGSize) -> Int {
         if UIDevice.current.userInterfaceIdiom == .phone {
-            return 3
+            return Constants.phoneGridColumns
         }
         let availableWidth = max(0, size.width)
         let rawColumns = Int(availableWidth / Constants.gridMinItemWidth)
@@ -120,6 +118,17 @@ struct WatchlistView: View {
     }
 
     private func gridColumns(count: Int) -> [GridItem] {
-        Array(repeating: GridItem(.flexible(), spacing: 0), count: count)
+        Array(repeating: GridItem(.flexible(), spacing: Constants.gridSpacing), count: count)
     }
+}
+
+private enum Constants {
+    static let gridMinItemWidth: CGFloat = 200
+    static let maxGridColumns = 6
+    static let minGridColumns = 2
+    static let gridSpacing: CGFloat = 0
+    static let emptyStateSpacing: CGFloat = 16
+    static let emptyStateIconSize: CGFloat = 56
+    static let emptyStatePadding: CGFloat = 24
+    static let phoneGridColumns = 3
 }

@@ -19,7 +19,8 @@ final class MovieDetailsCoordinator: Coordinator {
             movie: movie,
             moviesService: dependenciesProvider.serviceProvider.moviesService,
             watchlistStore: dependenciesProvider.storeProvider.watchlistStore,
-            uiAssets: dependenciesProvider.assetsProvider.uiAssets
+            uiAssets: dependenciesProvider.assetsProvider.uiAssets,
+            posterURLProvider: dependenciesProvider.posterURLProvider
         )
         let view = MovieDetailsView(viewModel: viewModel)
         let viewController = MovieDetailsViewController(with: view)

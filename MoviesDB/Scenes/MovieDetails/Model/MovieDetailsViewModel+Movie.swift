@@ -8,9 +8,10 @@ extension MovieDetailsViewModel {
         movie: Movie,
         moviesService: MoviesServiceProtocol?,
         watchlistStore: WatchlistStoreProtocol?,
-        uiAssets: MovieDBUIAssetsProtocol?
+        uiAssets: MovieDBUIAssetsProtocol?,
+        posterURLProvider: any PosterURLProviding
     ) {
-        let baseContent = Self.makeContent(movie: movie, details: nil)
+        let baseContent = Self.makeContent(movie: movie, details: nil, posterURLProvider: posterURLProvider)
         let watchlistUpdates: (@Sendable () async -> AsyncStream<Bool>)? = {
             guard let watchlistStore else { return AsyncStream { $0.finish() } }
             return AsyncStream { continuation in
@@ -43,24 +44,24 @@ extension MovieDetailsViewModel {
             loadDetails: {
                 guard let moviesService else { return baseContent }
                 let details = try await moviesService.fetchDetails(id: movie.id)
-                return await Self.makeContent(movie: movie, details: details)
+                return await Self.makeContent(movie: movie, details: details, posterURLProvider: posterURLProvider)
             }
         )
     }
 
     convenience init(movie: Movie) {
-        self.init(movie: movie, moviesService: nil, watchlistStore: nil, uiAssets: nil)
+        self.init(movie: movie, moviesService: nil, watchlistStore: nil, uiAssets: nil, posterURLProvider: NilPosterURLProvider())
     }
 }
 
 private extension MovieDetailsViewModel {
-    static func makeContent(movie: Movie, details: MovieDetails?) -> MovieDetailsContent {
+    static func makeContent(movie: Movie, details: MovieDetails?, posterURLProvider: any PosterURLProviding) -> MovieDetailsContent {
         let title = details?.title ?? movie.title
         let overview = details?.overview ?? movie.overview
         let subtitle = makeSubtitle(movie: movie, details: details)
         let metadata = makeMetadata(movie: movie, details: details)
-        let posterURL = makePosterURL(path: details?.posterPath ?? movie.posterPath)
-        let backdropURL = makeBackdropURL(path: details?.backdropPath ?? movie.backdropPath)
+        let posterURL = posterURLProvider.makePosterURL(path: details?.posterPath ?? movie.posterPath)
+        let backdropURL = posterURLProvider.makeBackdropURL(path: details?.backdropPath ?? movie.backdropPath)
 
         return MovieDetailsContent(
             title: title,
@@ -152,18 +153,10 @@ private extension MovieDetailsViewModel {
         return parts.joined(separator: String.localizable.movieDetailsSubtitleSeparator)
     }
 
-    static func makePosterURL(path: String) -> URL? {
-        guard !path.isEmpty else { return nil }
-        return URL(string: "\(Constants.posterBaseURL)\(path)")
-    }
+}
 
-    static func makeBackdropURL(path: String?) -> URL? {
-        guard let path, !path.isEmpty else { return nil }
-        return URL(string: "\(Constants.backdropBaseURL)\(path)")
-    }
-
-    enum Constants {
-        static var posterBaseURL: String { "\(Environment.imageBaseURLString)/t/p/w500" }
-        static var backdropBaseURL: String { "\(Environment.imageBaseURLString)/t/p/w780" }
-    }
+private struct NilPosterURLProvider: PosterURLProviding {
+    nonisolated func makePosterURL(path: String?) -> URL? { nil }
+    nonisolated func makeBackdropURL(path: String?) -> URL? { nil }
+    nonisolated func makePosterOrBackdropURL(posterPath: String?, backdropPath: String?) -> URL? { nil }
 }

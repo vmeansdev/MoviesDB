@@ -9,12 +9,15 @@ protocol DependenciesProviderProtocol {
     var serviceProvider: ServiceProviderProtocol { get }
     var assetsProvider: AssetsProviderProtocol { get }
     var storeProvider: StoreProviderProtocol { get }
+    var posterImagePrefetcher: any PosterImagePrefetching { get }
+    var posterURLProvider: any PosterURLProviding { get }
+    func makePosterPrefetchController() -> any PosterPrefetchControlling
+    func makePosterRenderSizeProvider() -> any PosterRenderSizeProviding
 }
 
 final class DependenciesProvider: DependenciesProviderProtocol {
     lazy var coordinatorProvider: CoordinatorProviderProtocol = CoordinatorProvider(
         window: window,
-        serviceProvider: serviceProvider,
         windowConfigurator: windowConfigurator,
         appearanceConfigurator: appearanceConfigurator,
         assetsProvider: assetsProvider,
@@ -24,6 +27,8 @@ final class DependenciesProvider: DependenciesProviderProtocol {
     let serviceProvider: ServiceProviderProtocol
     let assetsProvider: AssetsProviderProtocol
     let storeProvider: StoreProviderProtocol
+    let posterImagePrefetcher: any PosterImagePrefetching
+    let posterURLProvider: any PosterURLProviding
     private let window: UIWindow?
     private let windowConfigurator: WindowConfiguratorProtocol
     private let appearanceConfigurator: AppAppearanceConfiguratorProtocol
@@ -49,5 +54,15 @@ final class DependenciesProvider: DependenciesProviderProtocol {
         serviceProvider = ServiceProvider(apiKey: Environment.apiKey, httpClient: cachingClient)
         assetsProvider = AssetsProvider()
         storeProvider = StoreProvider()
+        posterImagePrefetcher = PosterImagePrefetcher.shared
+        posterURLProvider = PosterURLProvider(imageBaseURLString: Environment.imageBaseURLString)
+    }
+
+    func makePosterPrefetchController() -> any PosterPrefetchControlling {
+        PosterPrefetchController(posterImagePrefetcher: posterImagePrefetcher)
+    }
+
+    func makePosterRenderSizeProvider() -> any PosterRenderSizeProviding {
+        PosterRenderSizeProvider()
     }
 }

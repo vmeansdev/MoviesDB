@@ -22,6 +22,7 @@ final class WatchlistCoordinator: Coordinator {
         let viewModel = WatchlistViewModel(
             watchlistStore: dependenciesProvider.storeProvider.watchlistStore,
             uiAssets: dependenciesProvider.assetsProvider.uiAssets,
+            posterURLProvider: dependenciesProvider.posterURLProvider,
             onSelect: { [weak self] movie in
                 self?.showDetails(movie: movie)
             }

@@ -4,6 +4,8 @@ import Testing
 @testable import MoviesDB
 
 struct MovieDetailsViewModelTests {
+    private let posterURLProvider = PosterURLProvider(imageBaseURLString: "https://image.tmdb.org")
+
     @Test
     @MainActor
     func test_initWithMovie_shouldMapContent() async {
@@ -24,7 +26,13 @@ struct MovieDetailsViewModelTests {
             voteCount: 505
         )
 
-        let sut = MovieDetailsViewModel(movie: movie, moviesService: nil, watchlistStore: nil, uiAssets: nil)
+        let sut = MovieDetailsViewModel(
+            movie: movie,
+            moviesService: nil,
+            watchlistStore: nil,
+            uiAssets: nil,
+            posterURLProvider: posterURLProvider
+        )
         let content = sut.content
 
         #expect(content.title == "Movie Title")
@@ -75,7 +83,13 @@ struct MovieDetailsViewModelTests {
             )
         )
 
-        let sut = MovieDetailsViewModel(movie: movie, moviesService: service, watchlistStore: nil, uiAssets: nil)
+        let sut = MovieDetailsViewModel(
+            movie: movie,
+            moviesService: service,
+            watchlistStore: nil,
+            uiAssets: nil,
+            posterURLProvider: posterURLProvider
+        )
         await sut.loadDetailsIfNeeded()
         let didFetch = await waitUntil { service.fetchDetailsCalls == [550] }
         #expect(didFetch)
@@ -108,7 +122,13 @@ struct MovieDetailsViewModelTests {
             voteCount: 10
         )
         let service = MockMoviesService()
-        let sut = MovieDetailsViewModel(movie: movie, moviesService: service, watchlistStore: nil, uiAssets: nil)
+        let sut = MovieDetailsViewModel(
+            movie: movie,
+            moviesService: service,
+            watchlistStore: nil,
+            uiAssets: nil,
+            posterURLProvider: posterURLProvider
+        )
 
         await sut.loadDetailsIfNeeded()
         await sut.loadDetailsIfNeeded()

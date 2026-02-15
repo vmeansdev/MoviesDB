@@ -1,3 +1,4 @@
+import Foundation
 import MovieDBData
 import MovieDBUI
 import Observation
@@ -11,16 +12,19 @@ final class WatchlistViewModel {
 
     private let watchlistStore: WatchlistStoreProtocol
     private let uiAssets: MovieDBUIAssetsProtocol
+    private let posterURLProvider: any PosterURLProviding
     private let onSelect: (Movie) -> Void
     private var observationTask: Task<Void, Never>?
 
     init(
         watchlistStore: WatchlistStoreProtocol,
         uiAssets: MovieDBUIAssetsProtocol,
+        posterURLProvider: any PosterURLProviding,
         onSelect: @escaping (Movie) -> Void
     ) {
         self.watchlistStore = watchlistStore
         self.uiAssets = uiAssets
+        self.posterURLProvider = posterURLProvider
         self.onSelect = onSelect
     }
 
@@ -39,12 +43,16 @@ final class WatchlistViewModel {
         }
     }
 
+    func posterURL(for movie: Movie) -> URL? {
+        posterURLProvider.makePosterOrBackdropURL(posterPath: movie.posterPath, backdropPath: movie.backdropPath)
+    }
+
     func startObserveWatchlist() {
         observationTask?.cancel()
         observationTask = Task { @MainActor in
             let stream = await watchlistStore.itemsStream()
             for await updatedItems in stream {
-                withAnimation(.easeInOut(duration: 0.2)) {
+                withAnimation(Constants.itemsUpdateAnimation) {
                     items = updatedItems
                 }
             }
@@ -55,4 +63,8 @@ final class WatchlistViewModel {
         observationTask?.cancel()
         observationTask = nil
     }
+}
+
+private enum Constants {
+    static let itemsUpdateAnimation: Animation = .easeInOut(duration: 0.2)
 }

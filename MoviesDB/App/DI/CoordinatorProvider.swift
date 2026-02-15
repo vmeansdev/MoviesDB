@@ -15,7 +15,6 @@ protocol CoordinatorProviderProtocol {
 @MainActor
 final class CoordinatorProvider: CoordinatorProviderProtocol {
     private let window: UIWindow?
-    private let serviceProvider: ServiceProviderProtocol
     private let windowConfigurator: WindowConfiguratorProtocol
     private let appearanceConfigurator: AppAppearanceConfiguratorProtocol
     private let assetsProvider: AssetsProviderProtocol
@@ -28,7 +27,6 @@ final class CoordinatorProvider: CoordinatorProviderProtocol {
 
     init(
         window: UIWindow?,
-        serviceProvider: ServiceProviderProtocol,
         windowConfigurator: WindowConfiguratorProtocol,
         appearanceConfigurator: AppAppearanceConfiguratorProtocol,
         assetsProvider: AssetsProviderProtocol,
@@ -36,7 +34,6 @@ final class CoordinatorProvider: CoordinatorProviderProtocol {
         dependenciesProvider: DependenciesProviderProtocol
     ) {
         self.window = window
-        self.serviceProvider = serviceProvider
         self.windowConfigurator = windowConfigurator
         self.appearanceConfigurator = appearanceConfigurator
         self.assetsProvider = assetsProvider
@@ -114,12 +111,11 @@ private extension CoordinatorProvider {
             image: assetsProvider.uiAssets.popularTabIcon,
             selectedImage: assetsProvider.uiAssets.popularTabSelectedIcon
         )
-        let coordinator = PopularCoordinator(
+        let coordinator = MovieCatalogCoordinator(
+            kind: .popular,
             rootViewController: navigationController,
-            serviceProvider: serviceProvider,
             coordinatorProvider: self,
-            watchlistStore: storeProvider.watchlistStore,
-            uiAssets: assetsProvider.uiAssets
+            dependenciesProvider: dependenciesProvider
         )
         return (navigationController, coordinator)
     }
@@ -131,12 +127,11 @@ private extension CoordinatorProvider {
             image: assetsProvider.uiAssets.topRatedTabIcon,
             selectedImage: assetsProvider.uiAssets.topRatedTabSelectedIcon
         )
-        let coordinator = TopRatedCoordinator(
+        let coordinator = MovieCatalogCoordinator(
+            kind: .topRated,
             rootViewController: navigationController,
-            serviceProvider: serviceProvider,
             coordinatorProvider: self,
-            watchlistStore: storeProvider.watchlistStore,
-            uiAssets: assetsProvider.uiAssets
+            dependenciesProvider: dependenciesProvider
         )
         return (navigationController, coordinator)
     }

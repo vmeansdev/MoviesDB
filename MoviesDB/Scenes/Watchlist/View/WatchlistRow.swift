@@ -1,9 +1,14 @@
-import MovieDBData
+import Foundation
+import Kingfisher
 import MovieDBUI
 import SwiftUI
 
 struct WatchlistRow: View {
-    let movie: Movie
+    @SwiftUI.Environment(\.displayScale) private var displayScale
+
+    let title: String
+    let releaseDate: String?
+    let posterURL: URL?
     let heartIcon: UIImage?
     let heartFilledIcon: UIImage?
     let tintColor: UIColor
@@ -15,57 +20,73 @@ struct WatchlistRow: View {
             ZStack(alignment: .bottomLeading) {
                 poster
                 Rectangle()
-                    .fill(Color.black.opacity(0.25))
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(movie.title)
+                    .fill(Color.black.opacity(Constants.overlayOpacity))
+                VStack(alignment: .leading, spacing: Constants.titleStackSpacing) {
+                    Text(title)
                         .font(.headline)
                         .foregroundColor(.white)
-                        .lineLimit(2)
-                    if let releaseDate = movie.releaseDate, !releaseDate.isEmpty {
+                        .lineLimit(Constants.titleLineLimit)
+                    if let releaseDate, !releaseDate.isEmpty {
                         Text(releaseDate)
                             .font(.caption)
                             .foregroundColor(.white)
                     }
                 }
-                .padding(8)
+                .padding(Constants.contentPadding)
             }
             .contentShape(Rectangle())
             .onTapGesture(perform: onSelect)
 
             RoundButtonView(icon: heartFilledIcon, tintColor: tintColor, action: onToggle)
-                .padding(8)
+                .padding(Constants.contentPadding)
                 .contentShape(Circle())
                 .highPriorityGesture(TapGesture().onEnded(onToggle))
                 .accessibilityLabel(Text(watchlistAccessibilityLabel))
                 .accessibilityValue(Text(watchlistAccessibilityValue))
                 .accessibilityHint(Text(String.localizable.watchlistAccessibilityHint))
         }
-        .frame(height: 250)
+        .frame(height: Constants.rowHeight)
         .contentShape(Rectangle())
     }
 
+    @ViewBuilder
     private var poster: some View {
-        AsyncImage(url: posterURL) { phase in
-            switch phase {
-            case let .success(image):
-                image.resizable().scaledToFill()
-            case .empty:
-                Color(.tertiarySystemBackground)
-            case .failure:
-                Color(.tertiarySystemBackground)
-            @unknown default:
-                Color(.tertiarySystemBackground)
+        Group {
+            if let posterURL, posterURL.isFileURL, let image = UIImage(contentsOfFile: posterURL.path) {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+            } else if posterURL != nil {
+                KFImage(posterURL)
+                    .setProcessor(DownsamplingImageProcessor(size: posterDownsamplingSize))
+                    .cancelOnDisappear(true)
+                    .onFailure { _ in
+                        if let posterURL {
+                            ImageCache.default.removeImage(forKey: posterURL.cacheKey)
+                        }
+                    }
+                    .placeholder { placeholder }
+                    .resizable()
+                    .scaledToFill()
+            } else {
+                placeholder
             }
         }
         .frame(maxWidth: .infinity)
-        .frame(height: 250)
+        .frame(height: Constants.rowHeight)
         .clipped()
-        .accessibilityLabel(Text(String(format: String.localizable.watchlistPosterAccessibilityFormat, movie.title)))
+        .accessibilityLabel(Text(String(format: String.localizable.watchlistPosterAccessibilityFormat, title)))
     }
 
-    private var posterURL: URL? {
-        guard !movie.posterPath.isEmpty else { return nil }
-        return URL(string: "\(Environment.imageBaseURLString)/t/p/w500\(movie.posterPath)")
+    private var placeholder: some View {
+        Color(.tertiarySystemBackground)
+    }
+
+    private var posterDownsamplingSize: CGSize {
+        CGSize(
+            width: max(UIScreen.main.bounds.width, Constants.minimumDownsamplingWidth) * displayScale,
+            height: Constants.rowHeight * displayScale
+        )
     }
 
     private var watchlistAccessibilityLabel: String {
@@ -75,4 +96,13 @@ struct WatchlistRow: View {
     private var watchlistAccessibilityValue: String {
         String.localizable.watchlistAccessibilityValueIn
     }
+}
+
+private enum Constants {
+    static let rowHeight: CGFloat = 250
+    static let minimumDownsamplingWidth: CGFloat = 200
+    static let overlayOpacity: CGFloat = 0.25
+    static let titleStackSpacing: CGFloat = 4
+    static let titleLineLimit = 2
+    static let contentPadding: CGFloat = 8
 }
