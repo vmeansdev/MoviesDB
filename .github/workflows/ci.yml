@@ -45,5 +45,6 @@ jobs:
             -workspace Dependencies/MovieDBUI/.swiftpm/xcode/package.xcworkspace \
             -scheme MovieDBUI \
             -destination 'platform=iOS Simulator,OS=18.5,name=iPhone 16 Pro' \
+            -parallel-testing-enabled NO \
             -derivedDataPath /tmp/DerivedData/MovieDBUI \
             test
