@@ -1,21 +1,21 @@
 # Architecture
 
-Each tab scene follows a Coordinator → Interactor → Presenter → View pattern.
+Each tab scene follows a SwiftUI `View + ViewModel` pattern.
 
-- Interactors are actors.
-- Presenters are `@MainActor`.
-- View controllers are UIKit and conform to `MovieListPresentable`.
+- View models are `@MainActor` and own async loading/state updates.
+- Navigation is handled with `NavigationStack`/`navigationDestination`.
+- Root composition is a SwiftUI `TabView`.
 
 Scene folders:
-- `MoviesDB/Scenes/Popular/...`
-- `MoviesDB/Scenes/TopRated/...`
+- `MoviesDB/Scenes/MovieCatalog/...`
 - `MoviesDB/Scenes/MovieDetails/...`
 - `MoviesDB/Scenes/Watchlist/...`
+- `MoviesDB/Scenes/Root/...`
 
 ## Key Files
-- `MoviesDB/App/Architecture/Coordinator.swift`
-- `MoviesDB/App/Architecture/RootCoordinator.swift`
-- `MoviesDB/Scenes/Popular`
-- `MoviesDB/Scenes/TopRated`
+- `MoviesDB/App/MoviesDBApp.swift`
+- `MoviesDB/Scenes/Root/RootView.swift`
+- `MoviesDB/Scenes/Root/RootViewModel.swift`
+- `MoviesDB/Scenes/MovieCatalog`
 - `MoviesDB/Scenes/MovieDetails`
 - `MoviesDB/Scenes/Watchlist`

@@ -13,14 +13,14 @@ MoviesDB is a Swift 6 iOS application that delivers a fast, elegant movie browsi
 **Highlights**
 - Swift 6 codebase with strict concurrency checks enabled.
 - Clean module split: `MoviesDB` (app), `MovieDBUI` (UI kit), `MovieDBData` (data layer).
-- VIP-style scene flow with coordinators, presenters, and interactors.
+- SwiftUI-first architecture with `View + ViewModel` scene composition.
 - Grid layouts that adapt to iPad and iPhone Max landscape.
 - Snapshot tests for UI components and full unit test coverage for core flows.
 - DocC documentation under `MoviesDB/Docs/Documentation.docc`.
 
 **Architecture At A Glance**
-- **UI layer**: `MovieDBUI` contains reusable view controllers, views, and UI assets.
-- **App layer**: `MoviesDB` composes scenes, handles routing, and wires dependencies.
+- **UI layer**: `MovieDBUI` contains reusable SwiftUI views/components and UI assets.
+- **App layer**: `MoviesDB` composes tabs/scenes with `View + ViewModel` and wires dependencies.
 - **Data layer**: `MovieDBData` owns models, caching, networking, and domain logic.
 - **DI**: Providers and builders assemble scenes with explicit dependencies.
 

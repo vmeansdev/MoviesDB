@@ -1,11 +1,12 @@
 # UI Layout
 
-- `MovieListViewController` (UIKit) is shared by Popular/TopRated.
+- `MovieCatalogView` (SwiftUI) is shared by Popular/Top Rated.
 - Layout adapts by size:
   - Compact iPhone: single-column list.
   - iPad and iPhone Max landscape: grid (3 columns on phone, adaptive on iPad).
-- Watchlist (SwiftUI) mirrors the same layout behavior.
+- Watchlist mirrors the same layout behavior.
 
 ## Key Files
-- `Dependencies/MovieDBUI/Sources/MovieDBUI/ViewControllers/MovieList/MovieListViewController.swift`
+- `MoviesDB/Scenes/MovieCatalog/View/MovieCatalogView.swift`
+- `MoviesDB/Scenes/MovieCatalog/MovieGridLayout.swift`
 - `MoviesDB/Scenes/Watchlist/View/WatchlistView.swift`

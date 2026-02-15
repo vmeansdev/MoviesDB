@@ -2,13 +2,12 @@
 
 - App strings: `MoviesDB/Resources/Localizable.xcstrings`.
 - UI package strings: `Dependencies/MovieDBUI/Sources/MovieDBUI/Resources/Localizable.xcstrings`.
-- UIKit view controllers keep accessibility configuration in dedicated methods.
-- SwiftUI views use localized strings and accessibility labels.
+- SwiftUI views use localized strings and explicit accessibility labels/values/hints.
 
 ## Key Files
 - `MoviesDB/Resources/Localizable.xcstrings`
 - `Dependencies/MovieDBUI/Sources/MovieDBUI/Resources/Localizable.xcstrings`
-- `Dependencies/MovieDBUI/Sources/MovieDBUI/ViewControllers/Error/ErrorViewController.swift`
-- `Dependencies/MovieDBUI/Sources/MovieDBUI/ViewControllers/Loading/LoadingViewController.swift`
-- `Dependencies/MovieDBUI/Sources/MovieDBUI/Cells/MovieCollectionViewCell.swift`
+- `Dependencies/MovieDBUI/Sources/MovieDBUI/Views/MovieCatalog/ErrorStateView.swift`
+- `Dependencies/MovieDBUI/Sources/MovieDBUI/Views/MovieCatalog/LoadingStateView.swift`
+- `Dependencies/MovieDBUI/Sources/MovieDBUI/Views/MovieCatalog/MovieCatalogItemView.swift`
 - `MoviesDB/Scenes/Watchlist/View/WatchlistView.swift`

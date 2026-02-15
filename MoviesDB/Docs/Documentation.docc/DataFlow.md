@@ -1,14 +1,13 @@
 # Data Flow
 
-1. Coordinator builds scene (ViewController + Interactor + Presenter).
-2. ViewController calls interactor (`viewDidLoad`, `loadMore`, `didSelect`).
-3. Interactor fetches data and emits `State` to presenter.
-4. Presenter maps domain models to view models and updates the view.
+1. Root composes tabs using SwiftUI (`TabView` + `NavigationStack`).
+2. View calls view model intents (`onAppear`, `loadMoreIfNeeded`, `toggleWatchlist`, navigation selection).
+3. View model fetches data from service/store and maps domain models to UI models.
+4. SwiftUI observes view model state and re-renders.
 
 ## Key Files
-- `MoviesDB/Scenes/Popular/Interactor/PopularInteractor.swift`
-- `MoviesDB/Scenes/Popular/Presenter/PopularPresenter.swift`
-- `MoviesDB/Scenes/Popular/View/PopularViewController.swift`
-- `MoviesDB/Scenes/TopRated/Interactor/TopRatedInteractor.swift`
-- `MoviesDB/Scenes/TopRated/Presenter/TopRatedPresenter.swift`
-- `MoviesDB/Scenes/TopRated/View/TopRatedViewController.swift`
+- `MoviesDB/Scenes/Root/RootView.swift`
+- `MoviesDB/Scenes/MovieCatalog/View/MovieCatalogView.swift`
+- `MoviesDB/Scenes/MovieCatalog/ViewModel/MovieCatalogViewModel.swift`
+- `MoviesDB/Scenes/Watchlist/View/WatchlistView.swift`
+- `MoviesDB/Scenes/Watchlist/ViewModel/WatchlistViewModel.swift`
