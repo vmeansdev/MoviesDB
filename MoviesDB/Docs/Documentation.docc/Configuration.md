@@ -8,4 +8,4 @@
 
 ## Key Files
 - `MoviesDB/App/Configuration/Environment.swift`
-- `MoviesDB/Info.plist`
+- `MoviesDB/Resources/Info.plist`

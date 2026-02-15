@@ -10,4 +10,4 @@ Minimum deployment target is **iOS 18** and the app is built with **Swift 6**.
 
 ## Key Files
 - `MoviesDB.xcodeproj`
-- `MoviesDB/Info.plist`
+- `MoviesDB/Resources/Info.plist`
