@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Movie: Codable, Sendable, Equatable {
+public struct Movie: Codable, Sendable, Equatable, Hashable {
     public let adult: Bool
     public let backdropPath: String?
     public let genreIDS: [Int]
@@ -9,7 +9,7 @@ public struct Movie: Codable, Sendable, Equatable {
     public let originalTitle: String
     public let overview: String
     public let popularity: Double
-    public let posterPath: String
+    public let posterPath: String?
     public let releaseDate: String?
     public let title: String
     public let video: Bool
@@ -25,7 +25,7 @@ public struct Movie: Codable, Sendable, Equatable {
         originalTitle: String,
         overview: String,
         popularity: Double,
-        posterPath: String,
+        posterPath: String?,
         releaseDate: String?,
         title: String,
         video: Bool,

@@ -1,6 +1,6 @@
 import AppHttpKit
 
-public struct MovieListOptions: QueryParametersConvertible, Sendable {
+public struct MovieCatalogOptions: QueryParametersConvertible, Sendable {
     @QueryParameter(1, "page") public var page: Int
     @QueryParameter("en", "language") public var language: String
 

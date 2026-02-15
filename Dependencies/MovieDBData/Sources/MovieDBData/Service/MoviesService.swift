@@ -2,8 +2,8 @@ import AppHttpKit
 import Foundation
 
 public protocol MoviesServiceProtocol: Sendable {
-    func fetchPopular(options: MovieListOptions) async throws -> MovieList
-    func fetchTopRated(options: MovieListOptions) async throws -> MovieList
+    func fetchPopular(options: MovieCatalogOptions) async throws -> MovieCatalog
+    func fetchTopRated(options: MovieCatalogOptions) async throws -> MovieCatalog
     func fetchDetails(id: Int) async throws -> MovieDetails
 }
 
@@ -18,14 +18,14 @@ public final class MoviesService: MoviesServiceProtocol, @unchecked Sendable {
         self.decoder = decoder
     }
 
-    public func fetchPopular(options: MovieListOptions) async throws -> MovieList {
+    public func fetchPopular(options: MovieCatalogOptions) async throws -> MovieCatalog {
         let response = try await client.get("movie/popular", queryParams: options.buildParams(with: .init(apiKey: apiKey)))
-        return try decoder.decode(MovieList.self, from: response)
+        return try decoder.decode(MovieCatalog.self, from: response)
     }
 
-    public func fetchTopRated(options: MovieListOptions) async throws -> MovieList {
+    public func fetchTopRated(options: MovieCatalogOptions) async throws -> MovieCatalog {
         let response = try await client.get("movie/top_rated", queryParams: options.buildParams(with: .init(apiKey: apiKey)))
-        return try decoder.decode(MovieList.self, from: response)
+        return try decoder.decode(MovieCatalog.self, from: response)
     }
 
     public func fetchDetails(id: Int) async throws -> MovieDetails {

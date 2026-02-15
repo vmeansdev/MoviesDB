@@ -8,7 +8,7 @@ struct MoviesServiceTests {
     func test_fetchPopular_shouldReturnExpectedResults() async throws {
         let environment = Environment()
         let sut = environment.makeSUT()
-        environment.mockClient.responseReturnValue = environment.mockMovieListResponse
+        environment.mockClient.responseReturnValue = environment.mockMovieCatalogResponse
 
         let response = try await sut.fetchPopular(options: .init(page: 1, language: "en"))
         #expect(response.results.isEmpty == false)
@@ -18,7 +18,7 @@ struct MoviesServiceTests {
     func test_fetchTopRated_shouldReturnExpectedResults() async throws {
         let environment = Environment()
         let sut = environment.makeSUT()
-        environment.mockClient.responseReturnValue = environment.mockMovieListResponse
+        environment.mockClient.responseReturnValue = environment.mockMovieCatalogResponse
 
         let response = try await sut.fetchTopRated(options: .init(page: 1, language: "en"))
         #expect(response.results.isEmpty == false)
@@ -45,7 +45,7 @@ private final class Environment {
     @SampleFile(fileName: "sample_movie_list.json")
     var movieListJSONURL: URL
 
-    lazy var mockMovieListResponse: Response = {
+    lazy var mockMovieCatalogResponse: Response = {
         let data: Data
         do {
             data = try Data(contentsOf: movieListJSONURL)

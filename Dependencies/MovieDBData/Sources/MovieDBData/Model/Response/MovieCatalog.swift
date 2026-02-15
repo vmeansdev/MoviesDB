@@ -1,4 +1,4 @@
-public struct MovieList: Decodable, Sendable {
+public struct MovieCatalog: Decodable, Sendable {
     public let page: Int
     public let results: [Movie]
     public let totalPages: Int
