@@ -6,7 +6,5 @@
 - UI updates happen on the main actor only.
 
 ## Key Files
-- `MoviesDB/Scenes/Popular/Interactor/PopularInteractor.swift`
-- `MoviesDB/Scenes/TopRated/Interactor/TopRatedInteractor.swift`
-- `MoviesDB/Scenes/Popular/Presenter/PopularPresenter.swift`
-- `MoviesDB/Scenes/TopRated/Presenter/TopRatedPresenter.swift`
+- `MoviesDB/Scenes/MovieCatalog/Interactor/MovieCatalogInteractor.swift`
+- `MoviesDB/Scenes/MovieCatalog/Presenter/MovieCatalogPresenter.swift`

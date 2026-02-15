@@ -4,18 +4,16 @@ Each tab scene follows a Coordinator → Interactor → Presenter → View patte
 
 - Interactors are actors.
 - Presenters are `@MainActor`.
-- View controllers are UIKit and conform to `MovieListPresentable`.
+- View controllers are UIKit and conform to `MovieCatalogPresentable`.
 
 Scene folders:
-- `MoviesDB/Scenes/Popular/...`
-- `MoviesDB/Scenes/TopRated/...`
+- `MoviesDB/Scenes/MovieCatalog/...`
 - `MoviesDB/Scenes/MovieDetails/...`
 - `MoviesDB/Scenes/Watchlist/...`
 
 ## Key Files
 - `MoviesDB/App/Architecture/Coordinator.swift`
 - `MoviesDB/App/Architecture/RootCoordinator.swift`
-- `MoviesDB/Scenes/Popular`
-- `MoviesDB/Scenes/TopRated`
+- `MoviesDB/Scenes/MovieCatalog`
 - `MoviesDB/Scenes/MovieDetails`
 - `MoviesDB/Scenes/Watchlist`

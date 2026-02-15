@@ -6,9 +6,6 @@
 4. Presenter maps domain models to view models and updates the view.
 
 ## Key Files
-- `MoviesDB/Scenes/Popular/Interactor/PopularInteractor.swift`
-- `MoviesDB/Scenes/Popular/Presenter/PopularPresenter.swift`
-- `MoviesDB/Scenes/Popular/View/PopularViewController.swift`
-- `MoviesDB/Scenes/TopRated/Interactor/TopRatedInteractor.swift`
-- `MoviesDB/Scenes/TopRated/Presenter/TopRatedPresenter.swift`
-- `MoviesDB/Scenes/TopRated/View/TopRatedViewController.swift`
+- `MoviesDB/Scenes/MovieCatalog/Interactor/MovieCatalogInteractor.swift`
+- `MoviesDB/Scenes/MovieCatalog/Presenter/MovieCatalogPresenter.swift`
+- `MoviesDB/Scenes/MovieCatalog/View/MovieCatalogViewController.swift`
