@@ -7,7 +7,7 @@ import UIKit
         let cell = MovieCollectionViewCell()
         cell.configure(with: MovieCollectionViewCell.PreviewData.viewModel)
         return cell
-    }.frame(height: 250)
+    }.frame(height: Constants.previewHeight)
 }
 
 extension MovieCollectionViewCell {
@@ -36,5 +36,9 @@ extension MovieCollectionViewCell {
             )
         }
     }
+}
+
+private enum Constants {
+    static let previewHeight: CGFloat = 250
 }
 #endif

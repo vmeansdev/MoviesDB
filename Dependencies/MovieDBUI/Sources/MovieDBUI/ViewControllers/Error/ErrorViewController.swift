@@ -42,7 +42,7 @@ public class ErrorViewController: UIViewController {
     private lazy var stackView: UIStackView = {
         let view = UIStackView(arrangedSubviews: [messageLabel, retryButton, closeButton])
         view.axis = .vertical
-        view.spacing = 16
+        view.spacing = Constants.stackSpacing
         return view
     }()
     private let viewModel: ErrorViewModel
@@ -66,19 +66,27 @@ public class ErrorViewController: UIViewController {
 
     @objc private func retryButtonTapped() {
         viewModel.retryAction?()
-        dismiss(animated: true)
+        close()
     }
 
     @objc private func closeTapped() {
-        dismiss(animated: true)
+        close()
     }
 
     private func configureUI() {
         messageLabel.text = viewModel.errorMessage
         retryButton.isHidden = viewModel.retryAction == nil
-        closeButton.isHidden = viewModel.retryAction != nil
+        closeButton.isHidden = false
 
         configureAccessibility()
+    }
+
+    private func close() {
+        if parent != nil {
+            detach()
+            return
+        }
+        dismiss(animated: true)
     }
 
     private func configureAccessibility() {
@@ -95,8 +103,13 @@ public class ErrorViewController: UIViewController {
         NSLayoutConstraint.activate([
             stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             stackView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Constants.horizontalInset),
+            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -Constants.horizontalInset),
         ])
     }
+}
+
+private enum Constants {
+    static let stackSpacing: CGFloat = 16
+    static let horizontalInset: CGFloat = 20
 }

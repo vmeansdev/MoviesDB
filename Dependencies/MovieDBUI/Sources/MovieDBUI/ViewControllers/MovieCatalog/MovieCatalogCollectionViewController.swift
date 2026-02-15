@@ -1,27 +1,22 @@
 import UIKit
 
 @MainActor
-public protocol MovieListPresentable: AnyObject {
+public protocol MovieCatalogPresentable: AnyObject {
     func displayLoading(isInitial: Bool)
     func displayMovies(_ movies: [MovieCollectionViewModel])
     func displayError(_ error: ErrorViewModel)
     func displayTitle(_ title: String)
+    func displayPosterRenderSize(_ size: CGSize)
 }
 
-open class MovieListViewController: UIViewController {
-    private enum Constants {
-        static let gridMinItemWidth: CGFloat = 200
-        static let maxGridColumns = 6
-        static let minGridColumns = 2
-    }
-
+open class MovieCatalogCollectionViewController: UIViewController {
     private enum LayoutStyle: Equatable {
         case list
         case grid(columns: Int)
     }
 
     // MARK: - Properties
-    public let interactor: MovieListInteractorProtocol
+    public let interactor: MovieCatalogInteractorProtocol
     private lazy var collectionView: UICollectionView = {
         let view = UICollectionView(frame: .zero, collectionViewLayout: makeCollectionLayout(for: .list))
         view.isPrefetchingEnabled = true
@@ -35,9 +30,10 @@ open class MovieListViewController: UIViewController {
     }()
     private var dataSource: UICollectionViewDiffableDataSource<Int, MovieCollectionViewModel>!
     private var layoutStyle: LayoutStyle = .list
+    private var posterRenderSize = CGSize(width: Constants.gridMinItemWidth, height: Constants.itemHeight)
 
     // MARK: - Initialization
-    public init(interactor: MovieListInteractorProtocol) {
+    public init(interactor: MovieCatalogInteractorProtocol) {
         self.interactor = interactor
         super.init(nibName: nil, bundle: nil)
     }
@@ -55,11 +51,11 @@ open class MovieListViewController: UIViewController {
         super.viewDidLoad()
         title = initialTitle
         edgesForExtendedLayout = [.bottom]
-        navigationItem.largeTitleDisplayMode = .automatic
+        navigationItem.largeTitleDisplayMode = .never
         view.backgroundColor = .systemBackground
         makeLayout()
         setupDataSource()
-        registerForTraitChanges([UITraitHorizontalSizeClass.self, UITraitUserInterfaceIdiom.self]) { [weak self] (_: MovieListViewController, _: UITraitCollection) in
+        registerForTraitChanges([UITraitHorizontalSizeClass.self, UITraitUserInterfaceIdiom.self]) { [weak self] (_: MovieCatalogCollectionViewController, _: UITraitCollection) in
             self?.updateLayoutIfNeeded()
         }
         Task { await interactor.viewDidLoad() }
@@ -68,6 +64,7 @@ open class MovieListViewController: UIViewController {
     open override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         updateLayoutIfNeeded()
+        notifyLayoutDidChange()
         let topInset = view.safeAreaInsets.top
         if collectionView.contentInset.top != topInset {
             var insets = collectionView.contentInset
@@ -87,7 +84,8 @@ open class MovieListViewController: UIViewController {
         dataSource = UICollectionViewDiffableDataSource<Int, MovieCollectionViewModel>(collectionView: collectionView) { [weak self] collectionView, indexPath, item in
             let cell = collectionView.dequeueReusableCell(MovieCollectionViewCell.self, for: indexPath)
             if let movieCell = cell as? MovieCollectionViewCell {
-                movieCell.configure(with: item)
+                let renderSize = self?.posterRenderSize ?? .zero
+                movieCell.configure(with: item, posterRenderSize: renderSize)
                 movieCell.onToggleWatchlist = { [weak self] in
                     Task { await self?.interactor.didToggleWatchlist(item: indexPath.item) }
                 }
@@ -97,7 +95,7 @@ open class MovieListViewController: UIViewController {
     }
 }
 
-extension MovieListViewController: MovieListPresentable {
+extension MovieCatalogCollectionViewController: MovieCatalogPresentable {
     public func displayLoading(isInitial: Bool) {
         guard isInitial else { return }
         attach(LoadingViewController())
@@ -114,7 +112,10 @@ extension MovieListViewController: MovieListPresentable {
         snapshot.appendSections([0])
         snapshot.appendItems(movies)
         if currentSnapshot.numberOfItems == 0 {
-            dataSource.apply(snapshot, animatingDifferences: true)
+            dataSource.apply(snapshot, animatingDifferences: true) { [weak self] in
+                guard let self else { return }
+                Task { await self.interactor.didUpdateItems(columns: self.currentColumnsCount()) }
+            }
             return
         }
 
@@ -128,7 +129,10 @@ extension MovieListViewController: MovieListPresentable {
         let currentIds = currentSnapshot.itemIdentifiers.map(\.id)
         let newIds = movies.map(\.id)
         let shouldAnimate = currentIds != newIds
-        dataSource.apply(snapshot, animatingDifferences: shouldAnimate)
+        dataSource.apply(snapshot, animatingDifferences: shouldAnimate) { [weak self] in
+            guard let self else { return }
+            Task { await self.interactor.didUpdateItems(columns: self.currentColumnsCount()) }
+        }
     }
 
     public func displayError(_ error: ErrorViewModel) {
@@ -144,10 +148,14 @@ extension MovieListViewController: MovieListPresentable {
     public func displayTitle(_ title: String) {
         self.title = title
     }
+
+    public func displayPosterRenderSize(_ size: CGSize) {
+        posterRenderSize = size
+    }
 }
 
 // MARK: - Layout configuration
-private extension MovieListViewController {
+private extension MovieCatalogCollectionViewController {
     private func makeCollectionLayout(for style: LayoutStyle) -> UICollectionViewLayout {
         let columns = columnsCount(for: style)
         let itemWidthFraction = 1.0 / CGFloat(columns)
@@ -158,13 +166,16 @@ private extension MovieListViewController {
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
         item.contentInsets = .zero
 
-        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(250))
+        let groupSize = NSCollectionLayoutSize(
+            widthDimension: .fractionalWidth(1),
+            heightDimension: .absolute(Constants.itemHeight)
+        )
         let items = Array(repeating: item, count: columns)
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: items)
 
         let section = NSCollectionLayoutSection(group: group)
         section.contentInsets = .zero
-        section.interGroupSpacing = 0
+        section.interGroupSpacing = Constants.interGroupSpacing
 
         return UICollectionViewCompositionalLayout(section: section)
     }
@@ -174,6 +185,7 @@ private extension MovieListViewController {
         guard nextStyle != layoutStyle else { return }
         layoutStyle = nextStyle
         collectionView.setCollectionViewLayout(makeCollectionLayout(for: nextStyle), animated: false)
+        notifyLayoutDidChange()
     }
 
     private func resolveLayoutStyle() -> LayoutStyle {
@@ -196,7 +208,7 @@ private extension MovieListViewController {
 
     func gridColumnsCount() -> Int {
         if traitCollection.userInterfaceIdiom == .phone {
-            return 3
+            return Constants.phoneGridColumns
         }
         let availableWidth = max(0, view.bounds.width - view.safeAreaInsets.left - view.safeAreaInsets.right)
         let rawColumns = Int(availableWidth / Constants.gridMinItemWidth)
@@ -213,6 +225,23 @@ private extension MovieListViewController {
         }
     }
 
+    func currentColumnsCount() -> Int {
+        columnsCount(for: layoutStyle)
+    }
+
+    private func notifyLayoutDidChange() {
+        let availableWidth = max(0, view.bounds.width - view.safeAreaInsets.left - view.safeAreaInsets.right)
+        let containerSize = CGSize(width: availableWidth, height: view.bounds.height)
+        Task {
+            await interactor.didUpdateLayout(
+                containerSize: containerSize,
+                columns: currentColumnsCount(),
+                itemHeight: Constants.itemHeight,
+                minimumColumns: Constants.minimumColumns
+            )
+        }
+    }
+
     func makeLayout() {
         view.addSubview(collectionView)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
@@ -226,9 +255,12 @@ private extension MovieListViewController {
 }
 
 // MARK: - UICollectionViewDelegate
-extension MovieListViewController: UICollectionViewDelegate {
+extension MovieCatalogCollectionViewController: UICollectionViewDelegate {
     public func collectionView(_ collectionView: UICollectionView, didEndDisplaying cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
         (cell as? CollectionViewDetachable)?.onDetach()
+        Task {
+            await interactor.didUpdateVisibleItem(index: indexPath.item, isVisible: false, columns: currentColumnsCount())
+        }
     }
 
     public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
@@ -236,6 +268,9 @@ extension MovieListViewController: UICollectionViewDelegate {
     }
 
     public func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+        Task {
+            await interactor.didUpdateVisibleItem(index: indexPath.item, isVisible: true, columns: currentColumnsCount())
+        }
         Task {
             if await interactor.canLoadMore(item: indexPath.item) {
                 await interactor.loadMore()
@@ -245,7 +280,7 @@ extension MovieListViewController: UICollectionViewDelegate {
 }
 
 // MARK: - UICollectionViewDataSourcePrefetching
-extension MovieListViewController: UICollectionViewDataSourcePrefetching {
+extension MovieCatalogCollectionViewController: UICollectionViewDataSourcePrefetching {
     public func collectionView(_ collectionView: UICollectionView, prefetchItemsAt indexPaths: [IndexPath]) {
         let maxItem = indexPaths.map(\.item).max() ?? 0
         Task {
@@ -254,4 +289,14 @@ extension MovieListViewController: UICollectionViewDataSourcePrefetching {
             }
         }
     }
+}
+
+private enum Constants {
+    static let gridMinItemWidth: CGFloat = 200
+    static let maxGridColumns = 6
+    static let minGridColumns = 2
+    static let itemHeight: CGFloat = 250
+    static let interGroupSpacing: CGFloat = 0
+    static let phoneGridColumns = 3
+    static let minimumColumns = 1
 }

@@ -43,6 +43,8 @@ public class MovieCollectionViewCell: CollectionViewCell<MovieCollectionViewMode
     }()
 
     private let watchlistButton = RoundButton()
+    private var imageTask: DownloadTask?
+    private var currentPosterURL: URL?
 
     public override init(frame: CGRect) {
         super.init(frame: frame)
@@ -90,17 +92,11 @@ public class MovieCollectionViewCell: CollectionViewCell<MovieCollectionViewMode
     }
 
     public override func configure(with viewModel: MovieCollectionViewModel) {
-        posterImageView.kf.indicatorType = .activity
-        if let posterURL = viewModel.posterURL {
-            if posterURL.isFileURL, let image = UIImage(contentsOfFile: posterURL.path) {
-                posterImageView.kf.cancelDownloadTask()
-                posterImageView.image = image
-            } else {
-                posterImageView.kf.setImage(with: posterURL)
-            }
-        } else {
-            posterImageView.image = nil
-        }
+        configure(with: viewModel, posterRenderSize: contentView.bounds.size)
+    }
+
+    public func configure(with viewModel: MovieCollectionViewModel, posterRenderSize: CGSize) {
+        updatePosterIfNeeded(url: viewModel.posterURL, posterRenderSize: posterRenderSize)
         titleLabel.text = viewModel.title
         subtitleLabel.text = viewModel.subtitle
         updateWatchlistButton(with: viewModel)
@@ -108,12 +104,54 @@ public class MovieCollectionViewCell: CollectionViewCell<MovieCollectionViewMode
     }
 
     public func onDetach() {
+        imageTask?.cancel()
         posterImageView.kf.cancelDownloadTask()
     }
 
     public override func prepareForReuse() {
         super.prepareForReuse()
+        imageTask?.cancel()
+        posterImageView.kf.cancelDownloadTask()
+        posterImageView.image = nil
+        currentPosterURL = nil
         onToggleWatchlist = nil
+    }
+
+    private func updatePosterIfNeeded(url: URL?, posterRenderSize: CGSize) {
+        guard currentPosterURL != url else { return }
+        currentPosterURL = url
+
+        imageTask?.cancel()
+        posterImageView.kf.cancelDownloadTask()
+        posterImageView.kf.indicatorType = .none
+
+        guard let url else {
+            posterImageView.image = nil
+            return
+        }
+
+        if url.isFileURL, let image = UIImage(contentsOfFile: url.path) {
+            posterImageView.image = image
+            return
+        }
+
+        let targetSize = posterRenderSize == .zero ? Constants.fallbackPosterRenderSize : posterRenderSize
+        let processor = DownsamplingImageProcessor(size: targetSize)
+        imageTask = posterImageView.kf.setImage(
+            with: url,
+            options: [
+                .processor(processor),
+                .scaleFactor(UIScreen.main.scale),
+                .cacheOriginalImage,
+                .backgroundDecode,
+                .transition(.none)
+            ],
+            completionHandler: { result in
+                if case .failure = result {
+                    ImageCache.default.removeImage(forKey: url.cacheKey)
+                }
+            }
+        )
     }
 
     private func updateWatchlistButton(with viewModel: MovieCollectionViewModel) {
@@ -146,4 +184,8 @@ public class MovieCollectionViewCell: CollectionViewCell<MovieCollectionViewMode
         watchlistButton.pulse()
         onToggleWatchlist?()
     }
+}
+
+private enum Constants {
+    static let fallbackPosterRenderSize = CGSize(width: 200, height: 250)
 }

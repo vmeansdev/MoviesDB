@@ -17,10 +17,16 @@ public struct RoundButtonView: View {
             Image(uiImage: icon ?? UIImage())
                 .renderingMode(.template)
                 .foregroundColor(Color(tintColor))
-                .frame(width: 20, height: 20)
-                .padding(8)
-                .background(Color.white.opacity(0.5))
+                .frame(width: Constants.iconSize, height: Constants.iconSize)
+                .padding(Constants.iconPadding)
+                .background(Color.white.opacity(Constants.backgroundOpacity))
                 .clipShape(Circle())
         }
     }
+}
+
+private enum Constants {
+    static let iconSize: CGFloat = 20
+    static let iconPadding: CGFloat = 8
+    static let backgroundOpacity: CGFloat = 0.5
 }
