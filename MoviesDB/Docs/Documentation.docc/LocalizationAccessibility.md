@@ -7,7 +7,7 @@
 ## Key Files
 - `MoviesDB/Resources/Localizable.xcstrings`
 - `Dependencies/MovieDBUI/Sources/MovieDBUI/Resources/Localizable.xcstrings`
-- `Dependencies/MovieDBUI/Sources/MovieDBUI/Views/MovieCatalog/ErrorStateView.swift`
-- `Dependencies/MovieDBUI/Sources/MovieDBUI/Views/MovieCatalog/LoadingStateView.swift`
-- `Dependencies/MovieDBUI/Sources/MovieDBUI/Views/MovieCatalog/MovieCatalogItemView.swift`
+- `Dependencies/MovieDBUI/Sources/MovieDBUI/Views/MovieCatalog/ErrorStateView/ErrorStateView.swift`
+- `Dependencies/MovieDBUI/Sources/MovieDBUI/Views/MovieCatalog/LoadingStateView/LoadingStateView.swift`
+- `Dependencies/MovieDBUI/Sources/MovieDBUI/Views/MovieCatalog/MovieCatalogItemView/MovieCatalogItemView.swift`
 - `MoviesDB/Scenes/Watchlist/View/WatchlistView.swift`
