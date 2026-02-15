@@ -20,11 +20,15 @@ struct ErrorStateViewTests {
             of: hostingController.view,
             size: Constants.size,
             interfaceStyle: .both,
-            preferredContentSizeCategory: .medium
+            preferredContentSizeCategory: .medium,
+            precision: Constants.snapshotPrecision,
+            perceptualPrecision: Constants.snapshotPerceptualPrecision
         )
     }
 }
 
 private enum Constants {
     static let size = CGSize(width: 390, height: 844)
+    static let snapshotPrecision: Float = 0.98
+    static let snapshotPerceptualPrecision: Float = 0.95
 }

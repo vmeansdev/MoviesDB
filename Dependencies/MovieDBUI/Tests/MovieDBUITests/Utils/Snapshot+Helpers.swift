@@ -7,6 +7,8 @@ public func assertSnapshot<Value: UIView>(
     size: CGSize = .zero,
     interfaceStyle: UserInterfaceStyle = .both,
     preferredContentSizeCategory: UIContentSizeCategory = .medium,
+    precision: Float = 1,
+    perceptualPrecision: Float = 1,
     wait: TimeInterval = 0,
     record recording: Bool = false,
     timeout: TimeInterval = 5,
@@ -36,9 +38,13 @@ public func assertSnapshot<Value: UIView>(
         value.layoutIfNeeded()
         viewController.view.layoutIfNeeded()
 
+        let imageStrategy: Snapshotting<UIView, UIImage> = .image(
+            precision: precision,
+            perceptualPrecision: perceptualPrecision
+        )
         let strategy: Snapshotting<UIView, UIImage> = wait > 0
-            ? .wait(for: wait, on: .image)
-            : .image
+            ? .wait(for: wait, on: imageStrategy)
+            : imageStrategy
 
         assertSnapshot(
             of: window as UIView,
