@@ -1,6 +1,7 @@
 import SwiftUI
 import UIKit
 
+@MainActor
 struct MovieGridLayout {
     static let gridMinItemWidth: CGFloat = 200
     static let maxGridColumns = 6

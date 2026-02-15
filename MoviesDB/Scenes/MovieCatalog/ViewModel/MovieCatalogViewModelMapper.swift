@@ -9,6 +9,7 @@ protocol MovieCatalogLoadedState {
     var watchlistIds: Set<Int> { get }
 }
 
+@MainActor
 struct MovieCatalogViewModelMapper {
     let uiAssets: MovieDBUIAssetsProtocol
 
