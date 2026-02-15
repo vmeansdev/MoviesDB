@@ -6,6 +6,7 @@ import UIKit
 extension MovieDetailsViewModel {
     convenience init(
         movie: Movie,
+        isInWatchlist: Bool = false,
         moviesService: MoviesServiceProtocol?,
         watchlistStore: WatchlistStoreProtocol?,
         uiAssets: MovieDBUIAssetsProtocol?
@@ -14,12 +15,16 @@ extension MovieDetailsViewModel {
         let watchlistUpdates: (@Sendable () async -> AsyncStream<Bool>)? = {
             guard let watchlistStore else { return AsyncStream { $0.finish() } }
             return AsyncStream { continuation in
-                Task {
+                let task = Task {
                     let stream = await watchlistStore.itemsStream()
                     for await items in stream {
+                        if Task.isCancelled { break }
                         continuation.yield(items.contains { $0.id == movie.id })
                     }
                     continuation.finish()
+                }
+                continuation.onTermination = { _ in
+                    task.cancel()
                 }
             }
         }
@@ -29,7 +34,7 @@ extension MovieDetailsViewModel {
         }
         self.init(
             content: baseContent,
-            isInWatchlist: false,
+            isInWatchlist: isInWatchlist,
             watchlistIcon: uiAssets?.heartIcon,
             watchlistFilledIcon: uiAssets?.heartFilledIcon,
             watchlistActiveTintColor: .systemPink,
@@ -44,8 +49,8 @@ extension MovieDetailsViewModel {
         )
     }
 
-    convenience init(movie: Movie) {
-        self.init(movie: movie, moviesService: nil, watchlistStore: nil, uiAssets: nil)
+    convenience init(movie: Movie, isInWatchlist: Bool = false) {
+        self.init(movie: movie, isInWatchlist: isInWatchlist, moviesService: nil, watchlistStore: nil, uiAssets: nil)
     }
 }
 
@@ -148,8 +153,8 @@ private extension MovieDetailsViewModel {
         return parts.joined(separator: String.localizable.movieDetailsSubtitleSeparator)
     }
 
-    static func makePosterURL(path: String) -> URL? {
-        guard !path.isEmpty else { return nil }
+    static func makePosterURL(path: String?) -> URL? {
+        guard let path, !path.isEmpty else { return nil }
         return URL(string: "\(Constants.posterBaseURL)\(path)")
     }
 

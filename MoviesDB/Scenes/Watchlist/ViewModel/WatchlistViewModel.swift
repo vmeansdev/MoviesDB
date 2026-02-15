@@ -8,29 +8,33 @@ import UIKit
 @Observable
 final class WatchlistViewModel {
     private(set) var items: [Movie] = []
+    private(set) var itemViewModels: [MovieCollectionViewModel] = []
 
     private let watchlistStore: WatchlistStoreProtocol
     private let uiAssets: MovieDBUIAssetsProtocol
-    private let onSelect: (Movie) -> Void
+    private let mapper: MovieCatalogViewModelMapper
+    private let posterPrefetchController: any PosterPrefetchControlling
     private var observationTask: Task<Void, Never>?
 
     init(
         watchlistStore: WatchlistStoreProtocol,
         uiAssets: MovieDBUIAssetsProtocol,
-        onSelect: @escaping (Movie) -> Void
+        posterPrefetchController: any PosterPrefetchControlling
     ) {
         self.watchlistStore = watchlistStore
         self.uiAssets = uiAssets
-        self.onSelect = onSelect
+        self.mapper = MovieCatalogViewModelMapper(uiAssets: uiAssets)
+        self.posterPrefetchController = posterPrefetchController
     }
 
     var emptyStateIcon: UIImage? { uiAssets.watchlistEmptyIcon }
-    var heartIcon: UIImage? { uiAssets.heartIcon }
-    var heartFilledIcon: UIImage? { uiAssets.heartFilledIcon }
-    var watchlistTintColor: UIColor { .systemPink }
 
-    func select(movie: Movie) {
-        onSelect(movie)
+    func movie(at index: Int) -> Movie? {
+        items[safe: index]
+    }
+
+    func isInWatchlist(id: Int) -> Bool {
+        items.contains { $0.id == id }
     }
 
     func toggle(movie: Movie) {
@@ -44,9 +48,13 @@ final class WatchlistViewModel {
         observationTask = Task { @MainActor in
             let stream = await watchlistStore.itemsStream()
             for await updatedItems in stream {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    items = updatedItems
-                }
+                guard updatedItems != items else { continue }
+                items = updatedItems
+                let loaded = LoadedMovieList(
+                    movies: updatedItems,
+                    watchlistIds: Set(updatedItems.map(\.id))
+                )
+                itemViewModels = mapper.makeMovies(from: loaded)
             }
         }
     }
@@ -54,5 +62,33 @@ final class WatchlistViewModel {
     func stopObserveWatchlist() {
         observationTask?.cancel()
         observationTask = nil
+        posterPrefetchController.stop()
     }
+
+    func itemVisibilityChanged(index: Int, isVisible: Bool, columns: Int) {
+        posterPrefetchController.itemVisibilityChanged(
+            index: index,
+            isVisible: isVisible,
+            columns: columns,
+            itemCount: itemViewModels.count,
+            posterURLAt: { [weak self] index in
+                self?.itemViewModels[safe: index]?.posterURL
+            }
+        )
+    }
+
+    func itemsCountChanged(columns: Int) {
+        posterPrefetchController.itemCountChanged(
+            columns: columns,
+            itemCount: itemViewModels.count,
+            posterURLAt: { [weak self] index in
+                self?.itemViewModels[safe: index]?.posterURL
+            }
+        )
+    }
+}
+
+private struct LoadedMovieList: MovieCatalogLoadedState {
+    let movies: [Movie]
+    let watchlistIds: Set<Int>
 }

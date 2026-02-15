@@ -5,15 +5,18 @@ import SwiftUI
 struct WatchlistView: View {
     @Bindable private var viewModel: WatchlistViewModel
     @SwiftUI.Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    private let posterRenderSizeProvider: any PosterRenderSizeProviding
+    let makeDetailsViewModel: (Movie) -> MovieDetailsViewModel
+    @State private var selectedRoute: MovieDetailsRoute?
 
-    private enum Constants {
-        static let gridMinItemWidth: CGFloat = 200
-        static let maxGridColumns = 6
-        static let minGridColumns = 2
-    }
-
-    init(viewModel: WatchlistViewModel) {
+    init(
+        viewModel: WatchlistViewModel,
+        posterRenderSizeProvider: any PosterRenderSizeProviding,
+        makeDetailsViewModel: @escaping (Movie) -> MovieDetailsViewModel
+    ) {
         self.viewModel = viewModel
+        self.posterRenderSizeProvider = posterRenderSizeProvider
+        self.makeDetailsViewModel = makeDetailsViewModel
     }
 
     var body: some View {
@@ -27,63 +30,107 @@ struct WatchlistView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color(.systemBackground))
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationDestination(item: $selectedRoute) { route in
+                MovieDetailsView(viewModel: route.viewModel)
+            }
             .onAppear { viewModel.startObserveWatchlist() }
             .onDisappear { viewModel.stopObserveWatchlist() }
         }
     }
 
-    private var list: some View {
+    private func list(posterRenderSize: CGSize) -> some View {
         List {
-            ForEach(viewModel.items, id: \.id) { movie in
-                WatchlistRow(
-                    movie: movie,
-                    heartIcon: viewModel.heartIcon,
-                    heartFilledIcon: viewModel.heartFilledIcon,
-                    tintColor: viewModel.watchlistTintColor,
-                    onSelect: { viewModel.select(movie: movie) },
-                    onToggle: { viewModel.toggle(movie: movie) }
-                )
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets())
-                .listRowSeparator(.hidden)
+            ForEach(viewModel.itemViewModels.indices, id: \.self) { index in
+                if let movie = viewModel.movie(at: index) {
+                    Button {
+                        selectedRoute = MovieDetailsRoute(movie: movie, viewModel: makeDetailsViewModel(movie))
+                    } label: {
+                        MovieCatalogItemView(
+                            model: viewModel.itemViewModels[index],
+                            height: Constants.itemHeight,
+                            posterRenderSize: posterRenderSize,
+                            onToggleWatchlist: {
+                                viewModel.toggle(movie: movie)
+                            }
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .onAppear { viewModel.itemVisibilityChanged(index: index, isVisible: true, columns: Constants.listColumnsCount) }
+                    .onDisappear { viewModel.itemVisibilityChanged(index: index, isVisible: false, columns: Constants.listColumnsCount) }
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets())
+                    .listRowSeparator(.hidden)
+                }
             }
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
+        .onChange(of: viewModel.itemViewModels.count) { _, _ in
+            viewModel.itemsCountChanged(columns: Constants.listColumnsCount)
+        }
     }
 
-    private func grid(columns: Int) -> some View {
+    private func grid(columns: Int, posterRenderSize: CGSize) -> some View {
         ScrollView {
-            LazyVGrid(columns: gridColumns(count: columns), spacing: 0) {
-                ForEach(viewModel.items, id: \.id) { movie in
-                    WatchlistRow(
-                        movie: movie,
-                        heartIcon: viewModel.heartIcon,
-                        heartFilledIcon: viewModel.heartFilledIcon,
-                        tintColor: viewModel.watchlistTintColor,
-                        onSelect: { viewModel.select(movie: movie) },
-                        onToggle: { viewModel.toggle(movie: movie) }
-                    )
+            LazyVGrid(columns: MovieGridLayout.gridColumns(count: columns), spacing: Constants.gridSpacing) {
+                ForEach(viewModel.itemViewModels.indices, id: \.self) { index in
+                    if let movie = viewModel.movie(at: index) {
+                        Button {
+                            selectedRoute = MovieDetailsRoute(movie: movie, viewModel: makeDetailsViewModel(movie))
+                        } label: {
+                            MovieCatalogItemView(
+                                model: viewModel.itemViewModels[index],
+                                height: Constants.itemHeight,
+                                posterRenderSize: posterRenderSize,
+                                onToggleWatchlist: {
+                                    viewModel.toggle(movie: movie)
+                                }
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .onAppear { viewModel.itemVisibilityChanged(index: index, isVisible: true, columns: columns) }
+                        .onDisappear { viewModel.itemVisibilityChanged(index: index, isVisible: false, columns: columns) }
+                    }
                 }
             }
         }
+        .onChange(of: viewModel.itemViewModels.count) { _, _ in
+            viewModel.itemsCountChanged(columns: columns)
+        }
     }
 
+    @ViewBuilder
     private func content(for size: CGSize) -> some View {
-        if shouldUseGridLayout(size: size) {
-            return AnyView(grid(columns: gridColumnsCount(size: size)))
+        if MovieGridLayout.shouldUseGridLayout(size: size, horizontalSizeClass: horizontalSizeClass) {
+            let columns = MovieGridLayout.gridColumnsCount(size: size)
+            let renderSize = posterRenderSizeProvider.size(
+                for: size,
+                columns: columns,
+                itemHeight: Constants.itemHeight,
+                minimumColumns: Constants.listColumnsCount
+            )
+            grid(columns: columns, posterRenderSize: renderSize)
         }
-        return AnyView(list)
+        else {
+            let renderSize = posterRenderSizeProvider.size(
+                for: size,
+                columns: Constants.listColumnsCount,
+                itemHeight: Constants.itemHeight,
+                minimumColumns: Constants.listColumnsCount
+            )
+            list(posterRenderSize: renderSize)
+        }
     }
 
     private var emptyState: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: Constants.emptyStateSpacing) {
             if let icon = viewModel.emptyStateIcon {
                 Image(uiImage: icon)
                     .renderingMode(.template)
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 56, height: 56)
+                    .frame(width: Constants.emptyStateIconSize, height: Constants.emptyStateIconSize)
                     .foregroundColor(.secondary)
                     .accessibilityLabel(Text(String.localizable.watchlistEmptyIconAccessibilityLabel))
             }
@@ -95,31 +142,17 @@ struct WatchlistView: View {
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
         }
-        .padding(24)
+        .padding(Constants.emptyStatePadding)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    private func shouldUseGridLayout(size: CGSize) -> Bool {
-        if horizontalSizeClass == .regular {
-            return true
-        }
-        if UIDevice.current.userInterfaceIdiom == .phone {
-            return size.width > size.height
-        }
-        return false
-    }
+}
 
-    private func gridColumnsCount(size: CGSize) -> Int {
-        if UIDevice.current.userInterfaceIdiom == .phone {
-            return 3
-        }
-        let availableWidth = max(0, size.width)
-        let rawColumns = Int(availableWidth / Constants.gridMinItemWidth)
-        let clamped = min(Constants.maxGridColumns, max(Constants.minGridColumns, rawColumns))
-        return clamped
-    }
-
-    private func gridColumns(count: Int) -> [GridItem] {
-        Array(repeating: GridItem(.flexible(), spacing: 0), count: count)
-    }
+private enum Constants {
+    static let itemHeight: CGFloat = 250
+    static let gridSpacing: CGFloat = 0
+    static let emptyStateSpacing: CGFloat = 16
+    static let emptyStateIconSize: CGFloat = 56
+    static let emptyStatePadding: CGFloat = 24
+    static let listColumnsCount = 1
 }
