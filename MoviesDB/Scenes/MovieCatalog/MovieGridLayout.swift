@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 
 @MainActor
 struct MovieGridLayout {
@@ -8,26 +7,21 @@ struct MovieGridLayout {
     static let minGridColumns = 2
 
     static func shouldUseGridLayout(size: CGSize, horizontalSizeClass: UserInterfaceSizeClass?) -> Bool {
-        if horizontalSizeClass == .regular {
-            return true
-        }
-        if UIDevice.current.userInterfaceIdiom == .phone {
-            return size.width > size.height
-        }
-        return false
+        if horizontalSizeClass == .regular { return true }
+        return estimatedGridColumns(for: size) >= minGridColumns
     }
 
     static func gridColumnsCount(size: CGSize) -> Int {
-        if UIDevice.current.userInterfaceIdiom == .phone {
-            return 3
-        }
-        let availableWidth = max(0, size.width)
-        let rawColumns = Int(availableWidth / gridMinItemWidth)
-        let clamped = min(maxGridColumns, max(minGridColumns, rawColumns))
-        return clamped
+        let rawColumns = estimatedGridColumns(for: size)
+        return min(maxGridColumns, max(minGridColumns, rawColumns))
     }
 
     static func gridColumns(count: Int) -> [GridItem] {
         Array(repeating: GridItem(.flexible(), spacing: 0), count: count)
+    }
+
+    private static func estimatedGridColumns(for size: CGSize) -> Int {
+        let availableWidth = max(0, size.width)
+        return Int(availableWidth / gridMinItemWidth)
     }
 }
