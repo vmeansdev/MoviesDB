@@ -141,7 +141,6 @@ struct MovieCatalogViewModelTests {
 
 private extension MovieCatalogViewModel {
     var errorState: MovieCatalogErrorState? {
-        guard case let .error(_, details) = state else { return nil }
-        return details
+        state.errorDetails
     }
 }

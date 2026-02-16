@@ -41,14 +41,14 @@ struct MovieCatalogView<ViewModel: MovieCatalogViewModelProtocol>: View {
 
     @ViewBuilder
     private var stateOverlay: some View {
-        switch viewModel.state {
+        switch viewModel.state.phase {
         case .idle:
             EmptyView()
         case .initialLoading:
             LoadingStateView()
         case .loadingMore:
             loadingMoreOverlay
-        case let .error(_, details):
+        case let .error(details):
             ErrorStateView(
                 message: details.message,
                 retry: details.retry,

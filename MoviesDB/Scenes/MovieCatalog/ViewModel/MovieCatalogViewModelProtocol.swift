@@ -24,30 +24,47 @@ struct MovieCatalogErrorState: Identifiable {
     let retry: (() -> Void)?
 }
 
-enum MovieCatalogViewModelState {
-    case idle(items: [MovieCollectionViewModel])
-    case initialLoading(items: [MovieCollectionViewModel])
-    case loadingMore(items: [MovieCollectionViewModel])
-    case error(items: [MovieCollectionViewModel], details: MovieCatalogErrorState)
+enum MovieCatalogViewPhase {
+    case idle
+    case initialLoading
+    case loadingMore
+    case error(MovieCatalogErrorState)
+}
 
-    var items: [MovieCollectionViewModel] {
-        switch self {
-        case let .idle(items), let .initialLoading(items), let .loadingMore(items), let .error(items, _):
-            return items
-        }
+struct MovieCatalogViewModelState {
+    var phase: MovieCatalogViewPhase
+    var movies: [Movie]
+    var items: [MovieCollectionViewModel]
+    var watchlistIds: Set<Int>
+    var currentPage: Int
+    var totalPages: Int
+    var visibleColumns: Int
+
+    init(
+        phase: MovieCatalogViewPhase = .idle,
+        movies: [Movie] = [],
+        items: [MovieCollectionViewModel] = [],
+        watchlistIds: Set<Int> = [],
+        currentPage: Int = 0,
+        totalPages: Int = 1,
+        visibleColumns: Int = 1
+    ) {
+        self.phase = phase
+        self.movies = movies
+        self.items = items
+        self.watchlistIds = watchlistIds
+        self.currentPage = currentPage
+        self.totalPages = totalPages
+        self.visibleColumns = visibleColumns
     }
 
-    func replacingItems(_ items: [MovieCollectionViewModel]) -> MovieCatalogViewModelState {
-        switch self {
-        case .idle:
-            return .idle(items: items)
-        case .initialLoading:
-            return .initialLoading(items: items)
-        case .loadingMore:
-            return .loadingMore(items: items)
-        case let .error(_, details):
-            return .error(items: items, details: details)
-        }
+    var hasMoreItems: Bool {
+        currentPage < totalPages
+    }
+
+    var errorDetails: MovieCatalogErrorState? {
+        guard case let .error(details) = phase else { return nil }
+        return details
     }
 }
 

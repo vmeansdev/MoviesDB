@@ -56,7 +56,7 @@ private final class PreviewMovieCatalogViewModel: MovieCatalogViewModelProtocol 
             )
         ]
 
-        state = .idle(items: [
+        state = MovieCatalogViewModelState(items: [
             MovieCollectionViewModel(
                 id: "1",
                 title: "Preview One",
@@ -85,7 +85,7 @@ private final class PreviewMovieCatalogViewModel: MovieCatalogViewModelProtocol 
     func movie(at index: Int) -> Movie? { movies[safe: index] }
     func toggleWatchlist(at index: Int) {}
     func loadMoreIfNeeded(currentIndex: Int) {}
-    func dismissError() { state = .idle(items: state.items) }
+    func dismissError() { state.phase = .idle }
     func itemVisibilityChanged(index: Int, isVisible: Bool, columns: Int) {}
     func updateVisibleColumns(_ columns: Int) {}
 }

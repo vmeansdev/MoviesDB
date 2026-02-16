@@ -22,11 +22,11 @@ struct WatchlistView: View {
     var body: some View {
         GeometryReader { proxy in
             Group {
-                switch viewModel.state {
+                switch viewModel.state.phase {
                 case .empty:
                     emptyState
-                case let .loaded(_, itemViewModels):
-                    content(for: proxy.size, itemViewModels: itemViewModels)
+                case .loaded:
+                    content(for: proxy.size, itemViewModels: viewModel.state.itemViewModels)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)

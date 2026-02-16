@@ -11,7 +11,7 @@ final class MovieCatalogViewModel: MovieCatalogViewModelProtocol {
         case topRated
     }
 
-    private(set) var state: MovieCatalogViewModelState = .idle(items: [])
+    private(set) var state = MovieCatalogViewModelState()
 
     private let kind: Kind
     private let moviesService: MoviesServiceProtocol
@@ -22,20 +22,13 @@ final class MovieCatalogViewModel: MovieCatalogViewModelProtocol {
 
     @ObservationIgnored private var currentTask: Task<Void, Never>?
     @ObservationIgnored private var watchlistTask: Task<Void, Never>?
-    @ObservationIgnored private var movies: [Movie] = []
-    @ObservationIgnored private var movieIndexByID: [Int: Int] = [:]
-    @ObservationIgnored private var watchlistIds: Set<Int> = []
-    @ObservationIgnored private var currentPage = 0
-    @ObservationIgnored private var totalPages = 1
-    @ObservationIgnored private var visibleColumns = 1
-    @ObservationIgnored private var lastReportedItemsCount: Int?
 
     var title: String {
         Constants.title(for: kind, count: state.items.count)
     }
 
     func isInWatchlist(id: Int) -> Bool {
-        watchlistIds.contains(id)
+        state.watchlistIds.contains(id)
     }
 
     init(
@@ -56,7 +49,7 @@ final class MovieCatalogViewModel: MovieCatalogViewModelProtocol {
 
     func onAppear() {
         startWatchlistObservationIfNeeded()
-        guard currentPage == 0, currentTask == nil else { return }
+        guard state.currentPage == 0, currentTask == nil else { return }
         loadNextPage()
     }
 
@@ -70,26 +63,26 @@ final class MovieCatalogViewModel: MovieCatalogViewModelProtocol {
     }
 
     func movie(at index: Int) -> Movie? {
-        movies[safe: index]
+        state.movies[safe: index]
     }
 
     func toggleWatchlist(at index: Int) {
-        guard let movie = movies[safe: index] else { return }
+        guard let movie = state.movies[safe: index] else { return }
         Task {
             await watchlistStore.toggle(movie: movie)
         }
     }
 
     func loadMoreIfNeeded(currentIndex: Int) {
-        guard currentTask == nil, hasMoreItems else { return }
-        let nextBatchThreshold = max(movies.count - Constants.loadMoreThreshold, Constants.loadMoreThreshold)
+        guard currentTask == nil, state.hasMoreItems else { return }
+        let nextBatchThreshold = max(state.movies.count - Constants.loadMoreThreshold, Constants.loadMoreThreshold)
         if currentIndex >= nextBatchThreshold {
             loadNextPage()
         }
     }
 
     func dismissError() {
-        state = .idle(items: state.items)
+        state.phase = .idle
     }
 
     func itemVisibilityChanged(index: Int, isVisible: Bool, columns: Int) {
@@ -111,17 +104,15 @@ final class MovieCatalogViewModel: MovieCatalogViewModelProtocol {
 
     func updateVisibleColumns(_ columns: Int) {
         guard columns > 0 else { return }
-        let didChange = visibleColumns != columns
-        visibleColumns = columns
-        reportItemsCountIfNeeded(force: didChange)
+        state.visibleColumns = columns
+        reportItemsCount()
     }
 
-    private func reportItemsCountIfNeeded(force: Bool = false) {
+    private func reportItemsCount() {
         let posterURLs = state.items.map(\.posterURL)
         let itemsCount = posterURLs.count
-        guard force || lastReportedItemsCount != itemsCount else { return }
-        lastReportedItemsCount = itemsCount
-        Task { [posterPrefetchController, visibleColumns] in
+        let visibleColumns = state.visibleColumns
+        Task { [posterPrefetchController] in
             await posterPrefetchController.itemCountChanged(
                 columns: visibleColumns,
                 itemCount: itemsCount,
@@ -131,10 +122,6 @@ final class MovieCatalogViewModel: MovieCatalogViewModelProtocol {
                 }
             )
         }
-    }
-
-    private var hasMoreItems: Bool {
-        currentPage < totalPages
     }
 
     private func loadNextPage() {
@@ -148,8 +135,8 @@ final class MovieCatalogViewModel: MovieCatalogViewModelProtocol {
     }
 
     private func performLoadNextPage() async {
-        let nextPage = currentPage + 1
-        if currentPage == 0 {
+        let nextPage = state.currentPage + 1
+        if state.currentPage == 0 {
             await fetchInitialPages(startingAt: nextPage)
         } else {
             await fetchPageAndUpdate(page: nextPage)
@@ -159,14 +146,13 @@ final class MovieCatalogViewModel: MovieCatalogViewModelProtocol {
     private func fetchPageAndUpdate(page: Int) async {
         do {
             guard !Task.isCancelled else { return }
-            setLoadingState(isInitial: currentPage == 0)
-            let previousCount = movies.count
+            setLoadingState(isInitial: state.currentPage == 0)
+            let previousCount = state.movies.count
             let response = try await fetchPage(page: page)
-            currentPage = response.page
-            totalPages = response.totalPages
-            movies = appendUniqueMovies(existing: movies, incoming: response.results)
-            movieIndexByID = Self.makeMovieIndexMap(from: movies)
-            updateItemsAndTitle(previousCount: previousCount)
+            state.currentPage = response.page
+            state.totalPages = response.totalPages
+            state.movies = appendUniqueMovies(existing: state.movies, incoming: response.results)
+            updateItems(previousCount: previousCount)
             clearLoadingState()
         } catch {
             clearLoadingState()
@@ -178,11 +164,11 @@ final class MovieCatalogViewModel: MovieCatalogViewModelProtocol {
         do {
             guard !Task.isCancelled else { return }
             setLoadingState(isInitial: true)
-            let previousCount = movies.count
+            let previousCount = state.movies.count
 
-            var updatedMovies = movies
-            var updatedCurrentPage = currentPage
-            var updatedTotalPages = totalPages
+            var updatedMovies = state.movies
+            var updatedCurrentPage = state.currentPage
+            var updatedTotalPages = state.totalPages
 
             for index in 0..<Constants.initialPagesToLoad {
                 let targetPage = page + index
@@ -195,11 +181,10 @@ final class MovieCatalogViewModel: MovieCatalogViewModelProtocol {
                 }
             }
 
-            currentPage = updatedCurrentPage
-            totalPages = updatedTotalPages
-            movies = updatedMovies
-            movieIndexByID = Self.makeMovieIndexMap(from: movies)
-            updateItemsAndTitle(previousCount: previousCount)
+            state.currentPage = updatedCurrentPage
+            state.totalPages = updatedTotalPages
+            state.movies = updatedMovies
+            updateItems(previousCount: previousCount)
             clearLoadingState()
         } catch {
             clearLoadingState()
@@ -217,13 +202,13 @@ final class MovieCatalogViewModel: MovieCatalogViewModelProtocol {
     }
 
     private func setLoadingState(isInitial: Bool) {
-        state = isInitial ? .initialLoading(items: state.items) : .loadingMore(items: state.items)
-        reportItemsCountIfNeeded()
+        state.phase = isInitial ? .initialLoading : .loadingMore
+        reportItemsCount()
     }
 
     private func clearLoadingState() {
-        state = .idle(items: state.items)
-        reportItemsCountIfNeeded()
+        state.phase = .idle
+        reportItemsCount()
     }
 
     private func setError(_ error: Error) {
@@ -233,17 +218,17 @@ final class MovieCatalogViewModel: MovieCatalogViewModelProtocol {
                 self?.loadNextPage()
             }
         )
-        state = .error(items: state.items, details: details)
-        reportItemsCountIfNeeded()
+        state.phase = .error(details)
+        reportItemsCount()
     }
 
-    private func updateItemsAndTitle(previousCount: Int? = nil) {
+    private func updateItems(previousCount: Int? = nil) {
         if let previousCount, canAppendItems(from: previousCount) {
             appendItems(from: previousCount)
         } else {
-            let loaded = LoadedMovieList(movies: movies, watchlistIds: watchlistIds)
-            state = state.replacingItems(mapper.makeMovies(from: loaded))
-            reportItemsCountIfNeeded()
+            let loaded = LoadedMovieList(movies: state.movies, watchlistIds: state.watchlistIds)
+            state.items = mapper.makeMovies(from: loaded)
+            reportItemsCount()
         }
     }
 
@@ -258,9 +243,9 @@ final class MovieCatalogViewModel: MovieCatalogViewModelProtocol {
         let stream = await watchlistStore.itemsStream()
         for await items in stream {
             let updatedIds = Set(items.map(\.id))
-            guard updatedIds != watchlistIds else { continue }
-            let previousIds = watchlistIds
-            watchlistIds = updatedIds
+            guard updatedIds != state.watchlistIds else { continue }
+            let previousIds = state.watchlistIds
+            state.watchlistIds = updatedIds
             applyWatchlistDelta(previousIDs: previousIds, updatedIDs: updatedIds)
         }
     }
@@ -277,18 +262,19 @@ final class MovieCatalogViewModel: MovieCatalogViewModelProtocol {
     private func applyWatchlistDelta(previousIDs: Set<Int>, updatedIDs: Set<Int>) {
         let changedIDs = previousIDs.symmetricDifference(updatedIDs)
         guard !changedIDs.isEmpty else { return }
-        guard state.items.count == movies.count else {
-            updateItemsAndTitle()
+        guard state.items.count == state.movies.count else {
+            updateItems()
             return
         }
 
+        let movieIndexByID = Self.makeMovieIndexMap(from: state.movies)
         var updatedItems = state.items
         for id in changedIDs {
-            guard let index = movieIndexByID[id], let movie = movies[safe: index] else { continue }
+            guard let index = movieIndexByID[id], let movie = state.movies[safe: index] else { continue }
             updatedItems[index] = mapper.makeMovie(movie: movie, isInWatchlist: updatedIDs.contains(id))
         }
-        state = state.replacingItems(updatedItems)
-        reportItemsCountIfNeeded()
+        state.items = updatedItems
+        reportItemsCount()
     }
 
     private static func makeMovieIndexMap(from movies: [Movie]) -> [Int: Int] {
@@ -296,24 +282,22 @@ final class MovieCatalogViewModel: MovieCatalogViewModelProtocol {
     }
 
     private func canAppendItems(from previousCount: Int) -> Bool {
-        guard previousCount >= 0, previousCount <= movies.count else { return false }
+        guard previousCount >= 0, previousCount <= state.movies.count else { return false }
         guard state.items.count == previousCount else { return false }
         guard previousCount > 0 else { return true }
-        for index in 0..<previousCount where state.items[index].id != String(movies[index].id) {
+        for index in 0..<previousCount where state.items[index].id != String(state.movies[index].id) {
             return false
         }
         return true
     }
 
     private func appendItems(from previousCount: Int) {
-        guard previousCount < movies.count else { return }
-        let appended = movies[previousCount...].map { movie in
-            mapper.makeMovie(movie: movie, isInWatchlist: watchlistIds.contains(movie.id))
+        guard previousCount < state.movies.count else { return }
+        let appended = state.movies[previousCount...].map { movie in
+            mapper.makeMovie(movie: movie, isInWatchlist: state.watchlistIds.contains(movie.id))
         }
-        var updatedItems = state.items
-        updatedItems.append(contentsOf: appended)
-        state = state.replacingItems(updatedItems)
-        reportItemsCountIfNeeded()
+        state.items.append(contentsOf: appended)
+        reportItemsCount()
     }
 }
 
