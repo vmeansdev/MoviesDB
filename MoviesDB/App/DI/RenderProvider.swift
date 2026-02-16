@@ -1,14 +1,13 @@
 @MainActor
 protocol RenderProviderProtocol {
     var posterRenderSizeProvider: any PosterRenderSizeProviding { get }
-    var posterImagePrefetcher: any PosterImagePrefetching { get }
     func makePrefetchCommandGate() -> any PrefetchCommandGating
 }
 
 @MainActor
 final class RenderProvider: RenderProviderProtocol {
     let posterRenderSizeProvider: any PosterRenderSizeProviding
-    let posterImagePrefetcher: any PosterImagePrefetching
+    private let posterImagePrefetcher: any PosterImagePrefetching
 
     init(
         posterRenderSizeProvider: any PosterRenderSizeProviding = PosterRenderSizeProvider(),

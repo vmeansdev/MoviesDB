@@ -4,14 +4,10 @@ import Testing
 @MainActor
 struct RenderProviderTests {
     @Test
-    func test_defaultInit_usesSharedPosterImagePrefetcher() {
-        let first = RenderProvider()
-        let second = RenderProvider()
-        let lhs = first.posterImagePrefetcher as? PosterImagePrefetcher
-        let rhs = second.posterImagePrefetcher as? PosterImagePrefetcher
+    func test_defaultInit_buildsPrefetchCommandGate() {
+        let sut = RenderProvider()
+        let gate = sut.makePrefetchCommandGate()
 
-        #expect(lhs != nil)
-        #expect(rhs != nil)
-        #expect(lhs === rhs)
+        #expect(gate is PrefetchCommandGate)
     }
 }
