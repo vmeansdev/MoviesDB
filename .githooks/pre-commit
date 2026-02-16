@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+blocked_xcuserdata='MoviesDB.xcodeproj/xcuserdata/vmeansdev.xcuserdatad/xcschemes/xcschememanagement.plist'
+production_cfg='MoviesDB/App/Configuration/Production.xcconfig'
+
+staged_files="$(git diff --cached --name-only)"
+
+if echo "$staged_files" | grep -qx "$blocked_xcuserdata"; then
+  echo "ERROR: Do not commit $blocked_xcuserdata" >&2
+  exit 1
+fi
+
+if echo "$staged_files" | grep -qx "$production_cfg"; then
+  staged_content="$(git show :$production_cfg || true)"
+  if ! echo "$staged_content" | grep -Eq '^API_KEY[[:space:]]*=[[:space:]]*YOUR_API_KEY[[:space:]]*$'; then
+    echo "ERROR: $production_cfg contains a non-placeholder API key. Use YOUR_API_KEY before committing." >&2
+    exit 1
+  fi
+fi
