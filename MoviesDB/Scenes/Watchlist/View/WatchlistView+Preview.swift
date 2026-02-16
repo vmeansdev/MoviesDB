@@ -10,10 +10,28 @@ import SwiftUI
             posterPrefetchController: PosterPrefetchController(posterImagePrefetcher: PosterImagePrefetcher.shared)
         ),
         posterRenderSizeProvider: PosterRenderSizeProvider(),
-        makeDetailsViewModel: { movie in
-            MovieDetailsViewModel(movie: movie, isInWatchlist: true)
-        }
+        viewModelProvider: PreviewViewModelProvider()
     )
+}
+
+@MainActor
+private final class PreviewViewModelProvider: ViewModelProviderProtocol {
+    func makeMovieCatalogViewModel(kind: MovieCatalogViewModel.Kind) -> MovieCatalogViewModel {
+        fatalError("Not used in WatchlistView preview")
+    }
+
+    func makeWatchlistViewModel() -> WatchlistViewModel {
+        fatalError("Not used in WatchlistView preview")
+    }
+
+    func makeMovieDetailsViewModel(movie: Movie) -> MovieDetailsViewModel {
+        MovieDetailsViewModel(
+            movie: movie,
+            moviesService: nil,
+            watchlistStore: nil,
+            uiAssets: nil
+        )
+    }
 }
 
 private actor PreviewWatchlistStore: WatchlistStoreProtocol {

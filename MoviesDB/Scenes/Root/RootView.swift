@@ -11,17 +11,14 @@ struct RootView: View {
     }
 
     var body: some View {
+        let state = viewModel.state
+
         TabView {
             NavigationStack {
                 MovieCatalogView(
-                    viewModel: viewModel.popularViewModel,
-                    posterRenderSizeProvider: viewModel.posterRenderSizeProvider,
-                    makeDetailsViewModel: { movie in
-                        viewModel.makeMovieDetailsViewModel(
-                            movie: movie,
-                            isInWatchlist: viewModel.popularViewModel.isInWatchlist(id: movie.id)
-                        )
-                    }
+                    viewModel: state.popularViewModel,
+                    posterRenderSizeProvider: state.posterRenderSizeProvider,
+                    viewModelProvider: viewModel.detailsViewModelProvider
                 )
             }
             .navigationBarTitleDisplayMode(Constants.navigationTitleDisplayMode)
@@ -29,20 +26,15 @@ struct RootView: View {
                 Label {
                     Text(String.localizable.tabPopularTitle)
                 } icon: {
-                    tabImage(viewModel.tabAssets.popularTabIcon)
+                    tabImage(state.tabAssets.popularTabIcon)
                 }
             }
 
             NavigationStack {
                 MovieCatalogView(
-                    viewModel: viewModel.topRatedViewModel,
-                    posterRenderSizeProvider: viewModel.posterRenderSizeProvider,
-                    makeDetailsViewModel: { movie in
-                        viewModel.makeMovieDetailsViewModel(
-                            movie: movie,
-                            isInWatchlist: viewModel.topRatedViewModel.isInWatchlist(id: movie.id)
-                        )
-                    }
+                    viewModel: state.topRatedViewModel,
+                    posterRenderSizeProvider: state.posterRenderSizeProvider,
+                    viewModelProvider: viewModel.detailsViewModelProvider
                 )
             }
             .navigationBarTitleDisplayMode(Constants.navigationTitleDisplayMode)
@@ -50,20 +42,15 @@ struct RootView: View {
                 Label {
                     Text(String.localizable.tabTopRatedTitle)
                 } icon: {
-                    tabImage(viewModel.tabAssets.topRatedTabIcon)
+                    tabImage(state.tabAssets.topRatedTabIcon)
                 }
             }
 
             NavigationStack {
                 WatchlistView(
-                    viewModel: viewModel.watchlistViewModel,
-                    posterRenderSizeProvider: viewModel.posterRenderSizeProvider,
-                    makeDetailsViewModel: { movie in
-                        viewModel.makeMovieDetailsViewModel(
-                            movie: movie,
-                            isInWatchlist: viewModel.watchlistViewModel.isInWatchlist(id: movie.id)
-                        )
-                    }
+                    viewModel: state.watchlistViewModel,
+                    posterRenderSizeProvider: state.posterRenderSizeProvider,
+                    viewModelProvider: viewModel.detailsViewModelProvider
                 )
                 .navigationTitle(String.localizable.tabWatchlistTitle)
             }
@@ -72,7 +59,7 @@ struct RootView: View {
                 Label {
                     Text(String.localizable.tabWatchlistTitle)
                 } icon: {
-                    tabImage(viewModel.tabAssets.watchlistTabIcon)
+                    tabImage(state.tabAssets.watchlistTabIcon)
                 }
             }
         }

@@ -6,26 +6,27 @@ struct WatchlistView: View {
     @Bindable private var viewModel: WatchlistViewModel
     @SwiftUI.Environment(\.horizontalSizeClass) private var horizontalSizeClass
     private let posterRenderSizeProvider: any PosterRenderSizeProviding
-    let makeDetailsViewModel: (Movie) -> MovieDetailsViewModel
+    private let viewModelProvider: ViewModelProviderProtocol
     @State private var selectedRoute: MovieDetailsRoute?
 
     init(
         viewModel: WatchlistViewModel,
         posterRenderSizeProvider: any PosterRenderSizeProviding,
-        makeDetailsViewModel: @escaping (Movie) -> MovieDetailsViewModel
+        viewModelProvider: ViewModelProviderProtocol
     ) {
         self.viewModel = viewModel
         self.posterRenderSizeProvider = posterRenderSizeProvider
-        self.makeDetailsViewModel = makeDetailsViewModel
+        self.viewModelProvider = viewModelProvider
     }
 
     var body: some View {
         GeometryReader { proxy in
             Group {
-                if viewModel.items.isEmpty {
+                switch viewModel.state {
+                case .empty:
                     emptyState
-                } else {
-                    content(for: proxy.size)
+                case let .loaded(_, itemViewModels):
+                    content(for: proxy.size, itemViewModels: itemViewModels)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -34,20 +35,25 @@ struct WatchlistView: View {
             .navigationDestination(item: $selectedRoute) { route in
                 MovieDetailsView(viewModel: route.viewModel)
             }
-            .onAppear { viewModel.startObserveWatchlist() }
+            .task {
+                viewModel.startObserveWatchlist()
+            }
             .onDisappear { viewModel.stopObserveWatchlist() }
         }
     }
 
-    private func list(posterRenderSize: CGSize) -> some View {
+    private func list(itemViewModels: [MovieCollectionViewModel], posterRenderSize: CGSize) -> some View {
         List {
-            ForEach(viewModel.itemViewModels.indices, id: \.self) { index in
+            ForEach(itemViewModels.indices, id: \.self) { index in
                 if let movie = viewModel.movie(at: index) {
                     Button {
-                        selectedRoute = MovieDetailsRoute(movie: movie, viewModel: makeDetailsViewModel(movie))
+                        selectedRoute = MovieDetailsRoute(
+                            movie: movie,
+                            viewModel: viewModelProvider.makeMovieDetailsViewModel(movie: movie)
+                        )
                     } label: {
                         MovieCatalogItemView(
-                            model: viewModel.itemViewModels[index],
+                            model: itemViewModels[index],
                             height: Constants.itemHeight,
                             posterRenderSize: posterRenderSize,
                             onToggleWatchlist: {
@@ -66,21 +72,24 @@ struct WatchlistView: View {
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
-        .onChange(of: viewModel.itemViewModels.count) { _, _ in
-            viewModel.itemsCountChanged(columns: Constants.listColumnsCount)
+        .task {
+            viewModel.updateVisibleColumns(Constants.listColumnsCount)
         }
     }
 
-    private func grid(columns: Int, posterRenderSize: CGSize) -> some View {
+    private func grid(itemViewModels: [MovieCollectionViewModel], columns: Int, posterRenderSize: CGSize) -> some View {
         ScrollView {
             LazyVGrid(columns: MovieGridLayout.gridColumns(count: columns), spacing: Constants.gridSpacing) {
-                ForEach(viewModel.itemViewModels.indices, id: \.self) { index in
+                ForEach(itemViewModels.indices, id: \.self) { index in
                     if let movie = viewModel.movie(at: index) {
                         Button {
-                            selectedRoute = MovieDetailsRoute(movie: movie, viewModel: makeDetailsViewModel(movie))
+                            selectedRoute = MovieDetailsRoute(
+                                movie: movie,
+                                viewModel: viewModelProvider.makeMovieDetailsViewModel(movie: movie)
+                            )
                         } label: {
                             MovieCatalogItemView(
-                                model: viewModel.itemViewModels[index],
+                                model: itemViewModels[index],
                                 height: Constants.itemHeight,
                                 posterRenderSize: posterRenderSize,
                                 onToggleWatchlist: {
@@ -95,13 +104,13 @@ struct WatchlistView: View {
                 }
             }
         }
-        .onChange(of: viewModel.itemViewModels.count) { _, _ in
-            viewModel.itemsCountChanged(columns: columns)
+        .task(id: columns) {
+            viewModel.updateVisibleColumns(columns)
         }
     }
 
     @ViewBuilder
-    private func content(for size: CGSize) -> some View {
+    private func content(for size: CGSize, itemViewModels: [MovieCollectionViewModel]) -> some View {
         if MovieGridLayout.shouldUseGridLayout(size: size, horizontalSizeClass: horizontalSizeClass) {
             let columns = MovieGridLayout.gridColumnsCount(size: size)
             let renderSize = posterRenderSizeProvider.size(
@@ -110,7 +119,7 @@ struct WatchlistView: View {
                 itemHeight: Constants.itemHeight,
                 minimumColumns: Constants.listColumnsCount
             )
-            grid(columns: columns, posterRenderSize: renderSize)
+            grid(itemViewModels: itemViewModels, columns: columns, posterRenderSize: renderSize)
         }
         else {
             let renderSize = posterRenderSizeProvider.size(
@@ -119,7 +128,7 @@ struct WatchlistView: View {
                 itemHeight: Constants.itemHeight,
                 minimumColumns: Constants.listColumnsCount
             )
-            list(posterRenderSize: renderSize)
+            list(itemViewModels: itemViewModels, posterRenderSize: renderSize)
         }
     }
 
@@ -145,7 +154,6 @@ struct WatchlistView: View {
         .padding(Constants.emptyStatePadding)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
-
 }
 
 private enum Constants {
