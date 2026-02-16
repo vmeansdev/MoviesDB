@@ -1,72 +1,73 @@
 import MovieDBData
 import MovieDBUI
 import SwiftUI
-import UIKit
 
 struct MovieCatalogView<ViewModel: MovieCatalogViewModelProtocol>: View {
     @Bindable private var viewModel: ViewModel
     @SwiftUI.Environment(\.horizontalSizeClass) private var horizontalSizeClass
-    private let makeDetailsViewModel: (Movie) -> MovieDetailsViewModel
-    private let posterRenderSizeProvider: any PosterRenderSizeProviding
     @State private var selectedRoute: MovieDetailsRoute?
+    private let viewModelProvider: ViewModelProviderProtocol
+    private let posterRenderSizeProvider: any PosterRenderSizeProviding
 
     init(
         viewModel: ViewModel,
         posterRenderSizeProvider: any PosterRenderSizeProviding,
-        makeDetailsViewModel: @escaping (Movie) -> MovieDetailsViewModel
+        viewModelProvider: ViewModelProviderProtocol
     ) {
         self.viewModel = viewModel
         self.posterRenderSizeProvider = posterRenderSizeProvider
-        self.makeDetailsViewModel = makeDetailsViewModel
+        self.viewModelProvider = viewModelProvider
     }
 
     var body: some View {
         GeometryReader { proxy in
             ZStack {
-                Group {
-                    if viewModel.items.isEmpty {
-                        emptyState
-                    } else {
-                        content(for: proxy.size)
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-                if viewModel.isInitialLoading {
-                    LoadingStateView()
-                }
-
-                if viewModel.isLoadingMore {
-                    loadingMoreOverlay
-                }
-
-                if let error = viewModel.error {
-                    ErrorStateView(
-                        message: error.message,
-                        retry: error.retry,
-                        onClose: { viewModel.dismissError() }
-                    )
-                }
+                catalogContent(for: proxy.size, items: viewModel.state.items)
+                stateOverlay
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color(.systemBackground))
             .navigationTitle(viewModel.title)
             .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(item: $selectedRoute) { route in
                 MovieDetailsView(viewModel: route.viewModel)
             }
-            .onAppear { viewModel.onAppear() }
+            .task { viewModel.onAppear() }
             .onDisappear {
                 viewModel.onDisappear()
             }
         }
     }
 
-    private var emptyState: some View {
-        AnyView(Color.clear)
+    @ViewBuilder
+    private var stateOverlay: some View {
+        switch viewModel.state {
+        case .idle:
+            EmptyView()
+        case .initialLoading:
+            LoadingStateView()
+        case .loadingMore:
+            loadingMoreOverlay
+        case let .error(_, details):
+            ErrorStateView(
+                message: details.message,
+                retry: details.retry,
+                onClose: { viewModel.dismissError() }
+            )
+        }
     }
 
     @ViewBuilder
-    private func content(for size: CGSize) -> some View {
+    private func catalogContent(for size: CGSize, items: [MovieCollectionViewModel]) -> some View {
+        if items.isEmpty {
+            Color.clear
+        } else {
+            content(for: size, items: items)
+        }
+    }
+
+    @ViewBuilder
+    private func content(for size: CGSize, items: [MovieCollectionViewModel]) -> some View {
         if MovieGridLayout.shouldUseGridLayout(size: size, horizontalSizeClass: horizontalSizeClass) {
             let columns = MovieGridLayout.gridColumnsCount(size: size)
             let renderSize = posterRenderSizeProvider.size(
@@ -75,28 +76,30 @@ struct MovieCatalogView<ViewModel: MovieCatalogViewModelProtocol>: View {
                 itemHeight: Constants.itemHeight,
                 minimumColumns: Constants.listColumnsCount
             )
-            grid(columns: columns, posterRenderSize: renderSize)
-        }
-        else {
+            grid(items: items, columns: columns, posterRenderSize: renderSize)
+        } else {
             let renderSize = posterRenderSizeProvider.size(
                 for: size,
                 columns: Constants.listColumnsCount,
                 itemHeight: Constants.itemHeight,
                 minimumColumns: Constants.listColumnsCount
             )
-            list(posterRenderSize: renderSize)
+            list(items: items, posterRenderSize: renderSize)
         }
     }
 
-    private func list(posterRenderSize: CGSize) -> some View {
+    private func list(items: [MovieCollectionViewModel], posterRenderSize: CGSize) -> some View {
         List {
-            ForEach(viewModel.items.indices, id: \.self) { index in
+            ForEach(items.indices, id: \.self) { index in
                 if let movie = viewModel.movie(at: index) {
                     Button {
-                        selectedRoute = MovieDetailsRoute(movie: movie, viewModel: makeDetailsViewModel(movie))
+                        selectedRoute = MovieDetailsRoute(
+                            movie: movie,
+                            viewModel: viewModelProvider.makeMovieDetailsViewModel(movie: movie)
+                        )
                     } label: {
                         MovieCatalogItemView(
-                            model: viewModel.items[index],
+                            model: items[index],
                             height: Constants.itemHeight,
                             posterRenderSize: posterRenderSize,
                             onToggleWatchlist: {
@@ -113,8 +116,8 @@ struct MovieCatalogView<ViewModel: MovieCatalogViewModelProtocol>: View {
                 }
             }
 
-            if !viewModel.items.isEmpty {
-                loadMoreTrigger
+            if !items.isEmpty {
+                loadMoreTrigger(itemCount: items.count)
                     .listRowInsets(EdgeInsets())
                     .listRowSeparator(.hidden)
                     .listRowBackground(Color.clear)
@@ -125,21 +128,24 @@ struct MovieCatalogView<ViewModel: MovieCatalogViewModelProtocol>: View {
         .transaction { transaction in
             transaction.animation = nil
         }
-        .onChange(of: viewModel.items.count) { _, _ in
-            viewModel.itemsCountChanged(columns: Constants.listColumnsCount)
+        .task {
+            viewModel.updateVisibleColumns(Constants.listColumnsCount)
         }
     }
 
-    private func grid(columns: Int, posterRenderSize: CGSize) -> some View {
+    private func grid(items: [MovieCollectionViewModel], columns: Int, posterRenderSize: CGSize) -> some View {
         ScrollView {
             LazyVGrid(columns: MovieGridLayout.gridColumns(count: columns), spacing: Constants.gridSpacing) {
-                ForEach(viewModel.items.indices, id: \.self) { index in
+                ForEach(items.indices, id: \.self) { index in
                     if let movie = viewModel.movie(at: index) {
                         Button {
-                            selectedRoute = MovieDetailsRoute(movie: movie, viewModel: makeDetailsViewModel(movie))
+                            selectedRoute = MovieDetailsRoute(
+                                movie: movie,
+                                viewModel: viewModelProvider.makeMovieDetailsViewModel(movie: movie)
+                            )
                         } label: {
                             MovieCatalogItemView(
-                                model: viewModel.items[index],
+                                model: items[index],
                                 height: Constants.itemHeight,
                                 posterRenderSize: posterRenderSize,
                                 onToggleWatchlist: {
@@ -153,8 +159,8 @@ struct MovieCatalogView<ViewModel: MovieCatalogViewModelProtocol>: View {
                     }
                 }
 
-                if !viewModel.items.isEmpty {
-                    loadMoreTrigger
+                if !items.isEmpty {
+                    loadMoreTrigger(itemCount: items.count)
                         .frame(maxWidth: .infinity)
                         .frame(height: Constants.loadMoreTriggerHeight)
                 }
@@ -163,8 +169,8 @@ struct MovieCatalogView<ViewModel: MovieCatalogViewModelProtocol>: View {
         .transaction { transaction in
             transaction.animation = nil
         }
-        .onChange(of: viewModel.items.count) { _, _ in
-            viewModel.itemsCountChanged(columns: columns)
+        .task(id: columns) {
+            viewModel.updateVisibleColumns(columns)
         }
     }
 
@@ -179,11 +185,11 @@ struct MovieCatalogView<ViewModel: MovieCatalogViewModelProtocol>: View {
         .listRowSeparator(.hidden)
     }
 
-    private var loadMoreTrigger: some View {
+    private func loadMoreTrigger(itemCount: Int) -> some View {
         Color.clear
             .frame(height: Constants.loadMoreTriggerHeight)
-            .onAppear {
-                viewModel.loadMoreIfNeeded(currentIndex: max(viewModel.items.count - 1, 0))
+            .task {
+                viewModel.loadMoreIfNeeded(currentIndex: max(itemCount - 1, 0))
             }
     }
 
@@ -193,7 +199,6 @@ struct MovieCatalogView<ViewModel: MovieCatalogViewModelProtocol>: View {
             loadingMoreRow
         }
     }
-
 }
 
 private enum Constants {

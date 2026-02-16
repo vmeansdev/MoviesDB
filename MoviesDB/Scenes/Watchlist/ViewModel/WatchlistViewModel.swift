@@ -7,14 +7,15 @@ import UIKit
 @MainActor
 @Observable
 final class WatchlistViewModel {
-    private(set) var items: [Movie] = []
-    private(set) var itemViewModels: [MovieCollectionViewModel] = []
+    private(set) var state: WatchlistViewModelState = .empty
 
     private let watchlistStore: WatchlistStoreProtocol
     private let uiAssets: MovieDBUIAssetsProtocol
     private let mapper: MovieCatalogViewModelMapper
     private let posterPrefetchController: any PosterPrefetchControlling
-    private var observationTask: Task<Void, Never>?
+    @ObservationIgnored private var observationTask: Task<Void, Never>?
+    @ObservationIgnored private var visibleColumns = 1
+    @ObservationIgnored private var lastReportedItemsCount: Int?
 
     init(
         watchlistStore: WatchlistStoreProtocol,
@@ -30,11 +31,11 @@ final class WatchlistViewModel {
     var emptyStateIcon: UIImage? { uiAssets.watchlistEmptyIcon }
 
     func movie(at index: Int) -> Movie? {
-        items[safe: index]
+        state.movies[safe: index]
     }
 
     func isInWatchlist(id: Int) -> Bool {
-        items.contains { $0.id == id }
+        state.movies.contains { $0.id == id }
     }
 
     func toggle(movie: Movie) {
@@ -48,13 +49,18 @@ final class WatchlistViewModel {
         observationTask = Task { @MainActor in
             let stream = await watchlistStore.itemsStream()
             for await updatedItems in stream {
-                guard updatedItems != items else { continue }
-                items = updatedItems
+                guard updatedItems != state.movies else { continue }
                 let loaded = LoadedMovieList(
                     movies: updatedItems,
                     watchlistIds: Set(updatedItems.map(\.id))
                 )
-                itemViewModels = mapper.makeMovies(from: loaded)
+                let updatedItemViewModels = mapper.makeMovies(from: loaded)
+                if updatedItems.isEmpty {
+                    state = .empty
+                } else {
+                    state = .loaded(movies: updatedItems, itemViewModels: updatedItemViewModels)
+                }
+                reportItemsCountIfNeeded()
             }
         }
     }
@@ -62,29 +68,73 @@ final class WatchlistViewModel {
     func stopObserveWatchlist() {
         observationTask?.cancel()
         observationTask = nil
-        posterPrefetchController.stop()
+        Task { [posterPrefetchController] in
+            await posterPrefetchController.stop()
+        }
     }
 
     func itemVisibilityChanged(index: Int, isVisible: Bool, columns: Int) {
-        posterPrefetchController.itemVisibilityChanged(
-            index: index,
-            isVisible: isVisible,
-            columns: columns,
-            itemCount: itemViewModels.count,
-            posterURLAt: { [weak self] index in
-                self?.itemViewModels[safe: index]?.posterURL
-            }
-        )
+        let posterURLs = state.itemViewModels.map(\.posterURL)
+        let itemCount = posterURLs.count
+        Task { [posterPrefetchController] in
+            await posterPrefetchController.itemVisibilityChanged(
+                index: index,
+                isVisible: isVisible,
+                columns: columns,
+                itemCount: itemCount,
+                posterURLAt: { index in
+                    guard posterURLs.indices.contains(index) else { return nil }
+                    return posterURLs[index]
+                }
+            )
+        }
     }
 
-    func itemsCountChanged(columns: Int) {
-        posterPrefetchController.itemCountChanged(
-            columns: columns,
-            itemCount: itemViewModels.count,
-            posterURLAt: { [weak self] index in
-                self?.itemViewModels[safe: index]?.posterURL
-            }
-        )
+    func updateVisibleColumns(_ columns: Int) {
+        guard columns > 0 else { return }
+        let didChange = visibleColumns != columns
+        visibleColumns = columns
+        reportItemsCountIfNeeded(force: didChange)
+    }
+
+    private func reportItemsCountIfNeeded(force: Bool = false) {
+        let posterURLs = state.itemViewModels.map(\.posterURL)
+        let itemCount = posterURLs.count
+        guard force || lastReportedItemsCount != itemCount else { return }
+        lastReportedItemsCount = itemCount
+        Task { [posterPrefetchController, visibleColumns] in
+            await posterPrefetchController.itemCountChanged(
+                columns: visibleColumns,
+                itemCount: itemCount,
+                posterURLAt: { index in
+                    guard posterURLs.indices.contains(index) else { return nil }
+                    return posterURLs[index]
+                }
+            )
+        }
+    }
+}
+
+enum WatchlistViewModelState {
+    case empty
+    case loaded(movies: [Movie], itemViewModels: [MovieCollectionViewModel])
+
+    var movies: [Movie] {
+        switch self {
+        case .empty:
+            return []
+        case let .loaded(movies, _):
+            return movies
+        }
+    }
+
+    var itemViewModels: [MovieCollectionViewModel] {
+        switch self {
+        case .empty:
+            return []
+        case let .loaded(_, itemViewModels):
+            return itemViewModels
+        }
     }
 }
 

@@ -4,23 +4,19 @@ import Observation
 import SwiftUI
 
 #Preview {
+    let provider = PreviewViewModelProvider()
     MovieCatalogView(
         viewModel: PreviewMovieCatalogViewModel(),
         posterRenderSizeProvider: PosterRenderSizeProvider(),
-        makeDetailsViewModel: { movie in
-            MovieDetailsViewModel(movie: movie, isInWatchlist: false)
-        }
+        viewModelProvider: provider
     )
 }
 
 @MainActor
 @Observable
 private final class PreviewMovieCatalogViewModel: MovieCatalogViewModelProtocol {
-    var title: String = "Popular 2"
-    var items: [MovieCollectionViewModel]
-    var error: MovieCatalogErrorState? = nil
-    var isInitialLoading: Bool = false
-    var isLoadingMore: Bool = false
+    var title: String { "Popular \(state.items.count)" }
+    var state: MovieCatalogViewModelState
 
     private let movies: [Movie]
 
@@ -60,7 +56,7 @@ private final class PreviewMovieCatalogViewModel: MovieCatalogViewModelProtocol 
             )
         ]
 
-        items = [
+        state = .idle(items: [
             MovieCollectionViewModel(
                 id: "1",
                 title: "Preview One",
@@ -81,7 +77,7 @@ private final class PreviewMovieCatalogViewModel: MovieCatalogViewModelProtocol 
                 watchlistTintColor: .systemPink,
                 isInWatchlist: true
             )
-        ]
+        ])
     }
 
     func onAppear() {}
@@ -89,7 +85,27 @@ private final class PreviewMovieCatalogViewModel: MovieCatalogViewModelProtocol 
     func movie(at index: Int) -> Movie? { movies[safe: index] }
     func toggleWatchlist(at index: Int) {}
     func loadMoreIfNeeded(currentIndex: Int) {}
-    func dismissError() { error = nil }
+    func dismissError() { state = .idle(items: state.items) }
     func itemVisibilityChanged(index: Int, isVisible: Bool, columns: Int) {}
-    func itemsCountChanged(columns: Int) {}
+    func updateVisibleColumns(_ columns: Int) {}
+}
+
+@MainActor
+private final class PreviewViewModelProvider: ViewModelProviderProtocol {
+    func makeMovieCatalogViewModel(kind: MovieCatalogViewModel.Kind) -> MovieCatalogViewModel {
+        fatalError("Not used in MovieCatalogView preview")
+    }
+
+    func makeWatchlistViewModel() -> WatchlistViewModel {
+        fatalError("Not used in MovieCatalogView preview")
+    }
+
+    func makeMovieDetailsViewModel(movie: Movie) -> MovieDetailsViewModel {
+        MovieDetailsViewModel(
+            movie: movie,
+            moviesService: nil,
+            watchlistStore: nil,
+            uiAssets: nil
+        )
+    }
 }

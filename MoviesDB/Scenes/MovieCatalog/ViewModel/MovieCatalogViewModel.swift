@@ -1,8 +1,7 @@
+import Foundation
 import MovieDBData
 import MovieDBUI
 import Observation
-import SwiftUI
-import UIKit
 
 @MainActor
 @Observable
@@ -12,11 +11,7 @@ final class MovieCatalogViewModel: MovieCatalogViewModelProtocol {
         case topRated
     }
 
-    private(set) var title: String
-    private(set) var items: [MovieCollectionViewModel] = []
-    private(set) var error: MovieCatalogErrorState?
-    private(set) var isInitialLoading = false
-    private(set) var isLoadingMore = false
+    private(set) var state: MovieCatalogViewModelState = .idle(items: [])
 
     private let kind: Kind
     private let moviesService: MoviesServiceProtocol
@@ -25,15 +20,19 @@ final class MovieCatalogViewModel: MovieCatalogViewModelProtocol {
     private let posterPrefetchController: any PosterPrefetchControlling
     private let language: String
 
-    private var currentTask: Task<Void, Never>?
-    private var watchlistTask: Task<Void, Never>?
-    private var movies: [Movie] = []
-    private var movieIndexByID: [Int: Int] = [:]
-    private var watchlistIds: Set<Int> = []
-    private var currentPage = 0
-    private var totalPages = 1
-    private var hasLoadedInitial = false
-    private var isLoading = false
+    @ObservationIgnored private var currentTask: Task<Void, Never>?
+    @ObservationIgnored private var watchlistTask: Task<Void, Never>?
+    @ObservationIgnored private var movies: [Movie] = []
+    @ObservationIgnored private var movieIndexByID: [Int: Int] = [:]
+    @ObservationIgnored private var watchlistIds: Set<Int> = []
+    @ObservationIgnored private var currentPage = 0
+    @ObservationIgnored private var totalPages = 1
+    @ObservationIgnored private var visibleColumns = 1
+    @ObservationIgnored private var lastReportedItemsCount: Int?
+
+    var title: String {
+        Constants.title(for: kind, count: state.items.count)
+    }
 
     func isInWatchlist(id: Int) -> Bool {
         watchlistIds.contains(id)
@@ -53,13 +52,11 @@ final class MovieCatalogViewModel: MovieCatalogViewModelProtocol {
         self.mapper = MovieCatalogViewModelMapper(uiAssets: uiAssets)
         self.posterPrefetchController = posterPrefetchController
         self.language = language
-        self.title = Constants.title(for: kind, count: 0)
     }
 
     func onAppear() {
         startWatchlistObservationIfNeeded()
-        guard !hasLoadedInitial else { return }
-        hasLoadedInitial = true
+        guard currentPage == 0, currentTask == nil else { return }
         loadNextPage()
     }
 
@@ -67,7 +64,9 @@ final class MovieCatalogViewModel: MovieCatalogViewModelProtocol {
         currentTask?.cancel()
         watchlistTask?.cancel()
         watchlistTask = nil
-        posterPrefetchController.stop()
+        Task { [posterPrefetchController] in
+            await posterPrefetchController.stop()
+        }
     }
 
     func movie(at index: Int) -> Movie? {
@@ -82,7 +81,7 @@ final class MovieCatalogViewModel: MovieCatalogViewModelProtocol {
     }
 
     func loadMoreIfNeeded(currentIndex: Int) {
-        guard !isLoading, hasMoreItems else { return }
+        guard currentTask == nil, hasMoreItems else { return }
         let nextBatchThreshold = max(movies.count - Constants.loadMoreThreshold, Constants.loadMoreThreshold)
         if currentIndex >= nextBatchThreshold {
             loadNextPage()
@@ -90,29 +89,48 @@ final class MovieCatalogViewModel: MovieCatalogViewModelProtocol {
     }
 
     func dismissError() {
-        error = nil
+        state = .idle(items: state.items)
     }
 
     func itemVisibilityChanged(index: Int, isVisible: Bool, columns: Int) {
-        posterPrefetchController.itemVisibilityChanged(
-            index: index,
-            isVisible: isVisible,
-            columns: columns,
-            itemCount: items.count,
-            posterURLAt: { [weak self] index in
-                self?.items[safe: index]?.posterURL
-            }
-        )
+        let posterURLs = state.items.map(\.posterURL)
+        let itemCount = posterURLs.count
+        Task { [posterPrefetchController] in
+            await posterPrefetchController.itemVisibilityChanged(
+                index: index,
+                isVisible: isVisible,
+                columns: columns,
+                itemCount: itemCount,
+                posterURLAt: { index in
+                    guard posterURLs.indices.contains(index) else { return nil }
+                    return posterURLs[index]
+                }
+            )
+        }
     }
 
-    func itemsCountChanged(columns: Int) {
-        posterPrefetchController.itemCountChanged(
-            columns: columns,
-            itemCount: items.count,
-            posterURLAt: { [weak self] index in
-                self?.items[safe: index]?.posterURL
-            }
-        )
+    func updateVisibleColumns(_ columns: Int) {
+        guard columns > 0 else { return }
+        let didChange = visibleColumns != columns
+        visibleColumns = columns
+        reportItemsCountIfNeeded(force: didChange)
+    }
+
+    private func reportItemsCountIfNeeded(force: Bool = false) {
+        let posterURLs = state.items.map(\.posterURL)
+        let itemsCount = posterURLs.count
+        guard force || lastReportedItemsCount != itemsCount else { return }
+        lastReportedItemsCount = itemsCount
+        Task { [posterPrefetchController, visibleColumns] in
+            await posterPrefetchController.itemCountChanged(
+                columns: visibleColumns,
+                itemCount: itemsCount,
+                posterURLAt: { index in
+                    guard posterURLs.indices.contains(index) else { return nil }
+                    return posterURLs[index]
+                }
+            )
+        }
     }
 
     private var hasMoreItems: Bool {
@@ -139,7 +157,6 @@ final class MovieCatalogViewModel: MovieCatalogViewModelProtocol {
     }
 
     private func fetchPageAndUpdate(page: Int) async {
-        guard !isLoading else { return }
         do {
             guard !Task.isCancelled else { return }
             setLoadingState(isInitial: currentPage == 0)
@@ -158,7 +175,6 @@ final class MovieCatalogViewModel: MovieCatalogViewModelProtocol {
     }
 
     private func fetchInitialPages(startingAt page: Int) async {
-        guard !isLoading else { return }
         do {
             guard !Task.isCancelled else { return }
             setLoadingState(isInitial: true)
@@ -201,25 +217,24 @@ final class MovieCatalogViewModel: MovieCatalogViewModelProtocol {
     }
 
     private func setLoadingState(isInitial: Bool) {
-        isLoading = true
-        isInitialLoading = isInitial
-        isLoadingMore = !isInitial
-        error = nil
+        state = isInitial ? .initialLoading(items: state.items) : .loadingMore(items: state.items)
+        reportItemsCountIfNeeded()
     }
 
     private func clearLoadingState() {
-        isLoading = false
-        isInitialLoading = false
-        isLoadingMore = false
+        state = .idle(items: state.items)
+        reportItemsCountIfNeeded()
     }
 
     private func setError(_ error: Error) {
-        self.error = MovieCatalogErrorState(
+        let details = MovieCatalogErrorState(
             message: error.localizedDescription,
             retry: { [weak self] in
                 self?.loadNextPage()
             }
         )
+        state = .error(items: state.items, details: details)
+        reportItemsCountIfNeeded()
     }
 
     private func updateItemsAndTitle(previousCount: Int? = nil) {
@@ -227,9 +242,9 @@ final class MovieCatalogViewModel: MovieCatalogViewModelProtocol {
             appendItems(from: previousCount)
         } else {
             let loaded = LoadedMovieList(movies: movies, watchlistIds: watchlistIds)
-            items = mapper.makeMovies(from: loaded)
+            state = state.replacingItems(mapper.makeMovies(from: loaded))
+            reportItemsCountIfNeeded()
         }
-        title = Constants.title(for: kind, count: items.count)
     }
 
     private func startWatchlistObservationIfNeeded() {
@@ -262,17 +277,18 @@ final class MovieCatalogViewModel: MovieCatalogViewModelProtocol {
     private func applyWatchlistDelta(previousIDs: Set<Int>, updatedIDs: Set<Int>) {
         let changedIDs = previousIDs.symmetricDifference(updatedIDs)
         guard !changedIDs.isEmpty else { return }
-        guard items.count == movies.count else {
+        guard state.items.count == movies.count else {
             updateItemsAndTitle()
             return
         }
 
-        var updatedItems = items
+        var updatedItems = state.items
         for id in changedIDs {
             guard let index = movieIndexByID[id], let movie = movies[safe: index] else { continue }
             updatedItems[index] = mapper.makeMovie(movie: movie, isInWatchlist: updatedIDs.contains(id))
         }
-        items = updatedItems
+        state = state.replacingItems(updatedItems)
+        reportItemsCountIfNeeded()
     }
 
     private static func makeMovieIndexMap(from movies: [Movie]) -> [Int: Int] {
@@ -281,9 +297,9 @@ final class MovieCatalogViewModel: MovieCatalogViewModelProtocol {
 
     private func canAppendItems(from previousCount: Int) -> Bool {
         guard previousCount >= 0, previousCount <= movies.count else { return false }
-        guard items.count == previousCount else { return false }
+        guard state.items.count == previousCount else { return false }
         guard previousCount > 0 else { return true }
-        for index in 0..<previousCount where items[index].id != String(movies[index].id) {
+        for index in 0..<previousCount where state.items[index].id != String(movies[index].id) {
             return false
         }
         return true
@@ -294,7 +310,10 @@ final class MovieCatalogViewModel: MovieCatalogViewModelProtocol {
         let appended = movies[previousCount...].map { movie in
             mapper.makeMovie(movie: movie, isInWatchlist: watchlistIds.contains(movie.id))
         }
-        items.append(contentsOf: appended)
+        var updatedItems = state.items
+        updatedItems.append(contentsOf: appended)
+        state = state.replacingItems(updatedItems)
+        reportItemsCountIfNeeded()
     }
 }
 
