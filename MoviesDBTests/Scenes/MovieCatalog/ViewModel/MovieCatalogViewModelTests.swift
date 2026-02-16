@@ -24,7 +24,7 @@ struct MovieCatalogViewModelTests {
         let sut = makeSUT(
             moviesService: service,
             watchlistStore: watchlistStore,
-            posterPrefetchController: prefetchController
+            prefetchCommandGate: PrefetchCommandGate(controller: prefetchController)
         )
 
         sut.onAppear()
@@ -45,7 +45,7 @@ struct MovieCatalogViewModelTests {
         let sut = makeSUT(
             moviesService: service,
             watchlistStore: watchlistStore,
-            posterPrefetchController: prefetchController
+            prefetchCommandGate: PrefetchCommandGate(controller: prefetchController)
         )
 
         sut.onAppear()
@@ -72,7 +72,7 @@ struct MovieCatalogViewModelTests {
         let sut = makeSUT(
             moviesService: service,
             watchlistStore: watchlistStore,
-            posterPrefetchController: prefetchController
+            prefetchCommandGate: PrefetchCommandGate(controller: prefetchController)
         )
 
         sut.onAppear()
@@ -93,9 +93,10 @@ struct MovieCatalogViewModelTests {
         let sut = makeSUT(
             moviesService: service,
             watchlistStore: watchlistStore,
-            posterPrefetchController: prefetchController
+            prefetchCommandGate: PrefetchCommandGate(controller: prefetchController)
         )
 
+        sut.onAppear()
         sut.onDisappear()
 
         let didStop = await waitUntil {
@@ -107,14 +108,14 @@ struct MovieCatalogViewModelTests {
     private func makeSUT(
         moviesService: MoviesServiceProtocol,
         watchlistStore: WatchlistStoreProtocol,
-        posterPrefetchController: any PosterPrefetchControlling
+        prefetchCommandGate: any PrefetchCommandGating
     ) -> MovieCatalogViewModel {
         MovieCatalogViewModel(
             kind: .popular,
             moviesService: moviesService,
             watchlistStore: watchlistStore,
             uiAssets: MovieDBUIAssets.system,
-            posterPrefetchController: posterPrefetchController,
+            prefetchCommandGate: prefetchCommandGate,
             language: "en"
         )
     }

@@ -7,7 +7,9 @@ import SwiftUI
         viewModel: WatchlistViewModel(
             watchlistStore: PreviewWatchlistStore(),
             uiAssets: MovieDBUIAssets.system,
-            posterPrefetchController: PosterPrefetchController(posterImagePrefetcher: PosterImagePrefetcher.shared)
+            prefetchCommandGate: PrefetchCommandGate(
+                controller: PosterPrefetchController(posterImagePrefetcher: PosterImagePrefetcher.shared)
+            )
         ),
         posterRenderSizeProvider: PosterRenderSizeProvider(),
         viewModelProvider: PreviewViewModelProvider()

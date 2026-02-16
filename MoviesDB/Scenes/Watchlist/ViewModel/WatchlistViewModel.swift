@@ -12,19 +12,19 @@ final class WatchlistViewModel {
     private let watchlistStore: WatchlistStoreProtocol
     private let uiAssets: MovieDBUIAssetsProtocol
     private let mapper: MovieCatalogViewModelMapper
-    private let posterPrefetchController: any PosterPrefetchControlling
+    private let prefetchCommandGate: any PrefetchCommandGating
 
     @ObservationIgnored private var observationTask: Task<Void, Never>?
 
     init(
         watchlistStore: WatchlistStoreProtocol,
         uiAssets: MovieDBUIAssetsProtocol,
-        posterPrefetchController: any PosterPrefetchControlling
+        prefetchCommandGate: any PrefetchCommandGating
     ) {
         self.watchlistStore = watchlistStore
         self.uiAssets = uiAssets
         self.mapper = MovieCatalogViewModelMapper(uiAssets: uiAssets)
-        self.posterPrefetchController = posterPrefetchController
+        self.prefetchCommandGate = prefetchCommandGate
     }
 
     var emptyStateIcon: UIImage? { uiAssets.watchlistEmptyIcon }
@@ -44,6 +44,7 @@ final class WatchlistViewModel {
     }
 
     func startObserveWatchlist() {
+        prefetchCommandGate.markVisible()
         observationTask?.cancel()
         observationTask = Task { @MainActor in
             let stream = await watchlistStore.itemsStream()
@@ -64,26 +65,16 @@ final class WatchlistViewModel {
     func stopObserveWatchlist() {
         observationTask?.cancel()
         observationTask = nil
-        Task { [posterPrefetchController] in
-            await posterPrefetchController.stop()
-        }
+        prefetchCommandGate.markHiddenAndStop()
     }
 
     func itemVisibilityChanged(index: Int, isVisible: Bool, columns: Int) {
-        let posterURLs = state.itemViewModels.map(\.posterURL)
-        let itemCount = posterURLs.count
-        Task { [posterPrefetchController] in
-            await posterPrefetchController.itemVisibilityChanged(
-                index: index,
-                isVisible: isVisible,
-                columns: columns,
-                itemCount: itemCount,
-                posterURLAt: { index in
-                    guard posterURLs.indices.contains(index) else { return nil }
-                    return posterURLs[index]
-                }
-            )
-        }
+        prefetchCommandGate.itemVisibilityChanged(
+            index: index,
+            isVisible: isVisible,
+            columns: columns,
+            posterURLs: state.itemViewModels.map(\.posterURL)
+        )
     }
 
     func updateVisibleColumns(_ columns: Int) {
@@ -93,20 +84,12 @@ final class WatchlistViewModel {
     }
 
     private func reportItemsCount() {
-        let posterURLs = state.itemViewModels.map(\.posterURL)
-        let itemCount = posterURLs.count
-        let visibleColumns = state.visibleColumns
-        Task { [posterPrefetchController] in
-            await posterPrefetchController.itemCountChanged(
-                columns: visibleColumns,
-                itemCount: itemCount,
-                posterURLAt: { index in
-                    guard posterURLs.indices.contains(index) else { return nil }
-                    return posterURLs[index]
-                }
-            )
-        }
+        prefetchCommandGate.itemCountChanged(
+            columns: state.visibleColumns,
+            posterURLs: state.itemViewModels.map(\.posterURL)
+        )
     }
+
 }
 
 enum WatchlistViewPhase {

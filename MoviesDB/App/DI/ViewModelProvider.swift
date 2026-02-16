@@ -33,7 +33,7 @@ final class ViewModelProvider: ViewModelProviderProtocol {
             moviesService: serviceProvider.moviesService,
             watchlistStore: storeProvider.watchlistStore,
             uiAssets: assetsProvider.uiAssets,
-            posterPrefetchController: renderProvider.makePosterPrefetchController()
+            prefetchCommandGate: renderProvider.makePrefetchCommandGate()
         )
     }
 
@@ -41,7 +41,7 @@ final class ViewModelProvider: ViewModelProviderProtocol {
         WatchlistViewModel(
             watchlistStore: storeProvider.watchlistStore,
             uiAssets: assetsProvider.uiAssets,
-            posterPrefetchController: renderProvider.makePosterPrefetchController()
+            prefetchCommandGate: renderProvider.makePrefetchCommandGate()
         )
     }
 

@@ -23,6 +23,10 @@ final class MockRenderProvider: RenderProviderProtocol {
         madeControllers.append(controller)
         return controller
     }
+
+    func makePrefetchCommandGate() -> any PrefetchCommandGating {
+        PrefetchCommandGate(controller: makePosterPrefetchController())
+    }
 }
 
 @MainActor

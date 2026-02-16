@@ -10,7 +10,10 @@ struct WatchlistViewModelTests {
     func test_startObserveWatchlist_mapsItemsToViewModels() async {
         let watchlistStore = MockWatchlistStore()
         let prefetchController = MockPosterPrefetchController()
-        let sut = makeSUT(watchlistStore: watchlistStore, posterPrefetchController: prefetchController)
+        let sut = makeSUT(
+            watchlistStore: watchlistStore,
+            prefetchCommandGate: PrefetchCommandGate(controller: prefetchController)
+        )
 
         sut.startObserveWatchlist()
         let movie = makeMovie(id: 42)
@@ -28,7 +31,10 @@ struct WatchlistViewModelTests {
     func test_toggle_updatesWatchlistStore() async {
         let watchlistStore = MockWatchlistStore()
         let prefetchController = MockPosterPrefetchController()
-        let sut = makeSUT(watchlistStore: watchlistStore, posterPrefetchController: prefetchController)
+        let sut = makeSUT(
+            watchlistStore: watchlistStore,
+            prefetchCommandGate: PrefetchCommandGate(controller: prefetchController)
+        )
         let movie = makeMovie(id: 8)
 
         sut.toggle(movie: movie)
@@ -41,8 +47,12 @@ struct WatchlistViewModelTests {
     func test_itemVisibilityChanged_forwardsToPrefetchController() async {
         let watchlistStore = MockWatchlistStore()
         let prefetchController = MockPosterPrefetchController()
-        let sut = makeSUT(watchlistStore: watchlistStore, posterPrefetchController: prefetchController)
+        let sut = makeSUT(
+            watchlistStore: watchlistStore,
+            prefetchCommandGate: PrefetchCommandGate(controller: prefetchController)
+        )
 
+        sut.startObserveWatchlist()
         sut.itemVisibilityChanged(index: 3, isVisible: true, columns: 2)
 
         let didForward = await waitUntil {
@@ -60,7 +70,10 @@ struct WatchlistViewModelTests {
     func test_stopObserveWatchlist_stopsPrefetchController() async {
         let watchlistStore = MockWatchlistStore()
         let prefetchController = MockPosterPrefetchController()
-        let sut = makeSUT(watchlistStore: watchlistStore, posterPrefetchController: prefetchController)
+        let sut = makeSUT(
+            watchlistStore: watchlistStore,
+            prefetchCommandGate: PrefetchCommandGate(controller: prefetchController)
+        )
 
         sut.stopObserveWatchlist()
 
@@ -72,12 +85,12 @@ struct WatchlistViewModelTests {
 
     private func makeSUT(
         watchlistStore: WatchlistStoreProtocol,
-        posterPrefetchController: any PosterPrefetchControlling
+        prefetchCommandGate: any PrefetchCommandGating
     ) -> WatchlistViewModel {
         WatchlistViewModel(
             watchlistStore: watchlistStore,
             uiAssets: MovieDBUIAssets.system,
-            posterPrefetchController: posterPrefetchController
+            prefetchCommandGate: prefetchCommandGate
         )
     }
 

@@ -17,7 +17,7 @@ final class MovieCatalogViewModel: MovieCatalogViewModelProtocol {
     private let moviesService: MoviesServiceProtocol
     private let watchlistStore: WatchlistStoreProtocol
     private let mapper: MovieCatalogViewModelMapper
-    private let posterPrefetchController: any PosterPrefetchControlling
+    private let prefetchCommandGate: any PrefetchCommandGating
     private let language: String
 
     @ObservationIgnored private var currentTask: Task<Void, Never>?
@@ -36,18 +36,19 @@ final class MovieCatalogViewModel: MovieCatalogViewModelProtocol {
         moviesService: MoviesServiceProtocol,
         watchlistStore: WatchlistStoreProtocol,
         uiAssets: MovieDBUIAssetsProtocol,
-        posterPrefetchController: any PosterPrefetchControlling,
+        prefetchCommandGate: any PrefetchCommandGating,
         language: String = Locale.current.language.languageCode?.identifier ?? Constants.en
     ) {
         self.kind = kind
         self.moviesService = moviesService
         self.watchlistStore = watchlistStore
         self.mapper = MovieCatalogViewModelMapper(uiAssets: uiAssets)
-        self.posterPrefetchController = posterPrefetchController
+        self.prefetchCommandGate = prefetchCommandGate
         self.language = language
     }
 
     func onAppear() {
+        prefetchCommandGate.markVisible()
         startWatchlistObservationIfNeeded()
         guard state.currentPage == 0, currentTask == nil else { return }
         loadNextPage()
@@ -57,9 +58,7 @@ final class MovieCatalogViewModel: MovieCatalogViewModelProtocol {
         currentTask?.cancel()
         watchlistTask?.cancel()
         watchlistTask = nil
-        Task { [posterPrefetchController] in
-            await posterPrefetchController.stop()
-        }
+        prefetchCommandGate.markHiddenAndStop()
     }
 
     func movie(at index: Int) -> Movie? {
@@ -86,20 +85,12 @@ final class MovieCatalogViewModel: MovieCatalogViewModelProtocol {
     }
 
     func itemVisibilityChanged(index: Int, isVisible: Bool, columns: Int) {
-        let posterURLs = state.items.map(\.posterURL)
-        let itemCount = posterURLs.count
-        Task { [posterPrefetchController] in
-            await posterPrefetchController.itemVisibilityChanged(
-                index: index,
-                isVisible: isVisible,
-                columns: columns,
-                itemCount: itemCount,
-                posterURLAt: { index in
-                    guard posterURLs.indices.contains(index) else { return nil }
-                    return posterURLs[index]
-                }
-            )
-        }
+        prefetchCommandGate.itemVisibilityChanged(
+            index: index,
+            isVisible: isVisible,
+            columns: columns,
+            posterURLs: state.items.map(\.posterURL)
+        )
     }
 
     func updateVisibleColumns(_ columns: Int) {
@@ -109,19 +100,10 @@ final class MovieCatalogViewModel: MovieCatalogViewModelProtocol {
     }
 
     private func reportItemsCount() {
-        let posterURLs = state.items.map(\.posterURL)
-        let itemsCount = posterURLs.count
-        let visibleColumns = state.visibleColumns
-        Task { [posterPrefetchController] in
-            await posterPrefetchController.itemCountChanged(
-                columns: visibleColumns,
-                itemCount: itemsCount,
-                posterURLAt: { index in
-                    guard posterURLs.indices.contains(index) else { return nil }
-                    return posterURLs[index]
-                }
-            )
-        }
+        prefetchCommandGate.itemCountChanged(
+            columns: state.visibleColumns,
+            posterURLs: state.items.map(\.posterURL)
+        )
     }
 
     private func loadNextPage() {
