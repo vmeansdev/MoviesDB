@@ -1,14 +1,13 @@
 import Foundation
 
-@MainActor
-protocol PosterPrefetchControlling {
-    func itemVisibilityChanged(index: Int, isVisible: Bool, columns: Int, itemCount: Int, posterURLAt: @escaping (Int) -> URL?)
-    func itemCountChanged(columns: Int, itemCount: Int, posterURLAt: @escaping (Int) -> URL?)
-    func stop()
+protocol PosterPrefetchControlling: Actor {
+    func itemVisibilityChanged(index: Int, isVisible: Bool, columns: Int, itemCount: Int, posterURLAt: @Sendable @escaping (Int) -> URL?) async
+    func itemCountChanged(columns: Int, itemCount: Int, posterURLAt: @Sendable @escaping (Int) -> URL?) async
+    func stop() async
 }
 
-@MainActor
-final class PosterPrefetchController: PosterPrefetchControlling {
+
+actor PosterPrefetchController: PosterPrefetchControlling {
     private let posterImagePrefetcher: any PosterImagePrefetching
 
     private var visibleIndices = Set<Int>()
@@ -18,7 +17,7 @@ final class PosterPrefetchController: PosterPrefetchControlling {
         self.posterImagePrefetcher = posterImagePrefetcher
     }
 
-    func itemVisibilityChanged(index: Int, isVisible: Bool, columns: Int, itemCount: Int, posterURLAt: @escaping (Int) -> URL?) {
+    func itemVisibilityChanged(index: Int, isVisible: Bool, columns: Int, itemCount: Int, posterURLAt: @Sendable @escaping (Int) -> URL?) async {
         if isVisible {
             visibleIndices.insert(index)
         } else {
@@ -27,29 +26,29 @@ final class PosterPrefetchController: PosterPrefetchControlling {
         schedulePrefetch(columns: columns, itemCount: itemCount, posterURLAt: posterURLAt)
     }
 
-    func itemCountChanged(columns: Int, itemCount: Int, posterURLAt: @escaping (Int) -> URL?) {
+    func itemCountChanged(columns: Int, itemCount: Int, posterURLAt: @Sendable @escaping (Int) -> URL?) async {
         schedulePrefetch(columns: columns, itemCount: itemCount, posterURLAt: posterURLAt)
     }
 
-    func stop() {
+    func stop() async {
         prefetchTask?.cancel()
         prefetchTask = nil
         visibleIndices.removeAll(keepingCapacity: true)
-        posterImagePrefetcher.stop()
+        await posterImagePrefetcher.stop()
     }
 
-    private func schedulePrefetch(columns: Int, itemCount: Int, posterURLAt: @escaping (Int) -> URL?) {
+    private func schedulePrefetch(columns: Int, itemCount: Int, posterURLAt: @Sendable @escaping (Int) -> URL?) {
         prefetchTask?.cancel()
         prefetchTask = Task { [weak self] in
             try? await Task.sleep(nanoseconds: Constants.prefetchDebounceNanoseconds)
             guard let self, !Task.isCancelled else { return }
-            self.updatePrefetch(columns: columns, itemCount: itemCount, posterURLAt: posterURLAt)
+            await self.updatePrefetch(columns: columns, itemCount: itemCount, posterURLAt: posterURLAt)
         }
     }
 
-    private func updatePrefetch(columns: Int, itemCount: Int, posterURLAt: (Int) -> URL?) {
+    private func updatePrefetch(columns: Int, itemCount: Int, posterURLAt: @Sendable (Int) -> URL?) async {
         guard itemCount > 0 else {
-            posterImagePrefetcher.stop()
+            await posterImagePrefetcher.stop()
             return
         }
         guard let firstVisibleIndex = visibleIndices.min(), let lastVisibleIndex = visibleIndices.max() else {
@@ -63,7 +62,7 @@ final class PosterPrefetchController: PosterPrefetchControlling {
             columns: columns
         )
         let urls = prefetchRange.compactMap(posterURLAt)
-        posterImagePrefetcher.updatePrefetch(urls: urls)
+        await posterImagePrefetcher.updatePrefetch(urls: urls)
     }
 
     private func makePrefetchRange(firstVisibleIndex: Int, lastVisibleIndex: Int, totalCount: Int, columns: Int) -> ClosedRange<Int> {
@@ -74,7 +73,7 @@ final class PosterPrefetchController: PosterPrefetchControlling {
     }
 }
 
-private enum Constants {
+nonisolated private enum Constants {
     static let minimumColumns = 1
     static let prefetchRowsAhead = 4
     static let prefetchRowsBehind = 2

@@ -2,21 +2,19 @@ import Foundation
 import Kingfisher
 import UIKit
 
-@MainActor
-protocol PosterImagePrefetching {
+protocol PosterImagePrefetching: Actor {
     func updatePrefetch(urls: [URL])
     func stop()
 }
 
-@MainActor
-final class PosterImagePrefetcher: PosterImagePrefetching {
+actor PosterImagePrefetcher: PosterImagePrefetching {
     static let shared = PosterImagePrefetcher()
 
     private var prefetcher: ImagePrefetcher?
     private var cachedURLs: Set<URL> = []
 
     private init() {
-        Self.configureKingfisherIfNeeded()
+        Task { await configureKingfisherIfNeeded() }
     }
 
     func updatePrefetch(urls: [URL]) {
@@ -55,9 +53,9 @@ final class PosterImagePrefetcher: PosterImagePrefetching {
         return result
     }
 
-    private static var didConfigureKingfisher = false
+    private var didConfigureKingfisher = false
 
-    private static func configureKingfisherIfNeeded() {
+    private func configureKingfisherIfNeeded() {
         guard !didConfigureKingfisher else { return }
         didConfigureKingfisher = true
 
@@ -71,7 +69,7 @@ final class PosterImagePrefetcher: PosterImagePrefetching {
     }
 }
 
-private enum Constants {
+nonisolated private enum Constants {
     static let maxPrefetchURLs = 120
     static let memoryCacheTotalCostLimit = 320 * 1_024 * 1_024
     static let memoryCacheCountLimit = 600

@@ -29,7 +29,7 @@ struct MovieCatalogViewModelTests {
 
         sut.onAppear()
 
-        let didLoad = await waitUntil { await MainActor.run { sut.items.count == 2 } }
+        let didLoad = await waitUntil { await MainActor.run { sut.state.items.count == 2 } }
         #expect(didLoad)
         #expect(service.fetchPopularCalls.map(\.page) == [1, 2])
         #expect(sut.title == String(format: String.localizable.popularCountTitle, 2))
@@ -50,13 +50,13 @@ struct MovieCatalogViewModelTests {
 
         sut.onAppear()
 
-        let didLoad = await waitUntil { await MainActor.run { sut.items.count == 1 } }
+        let didLoad = await waitUntil { await MainActor.run { sut.state.items.count == 1 } }
         #expect(didLoad)
-        #expect(sut.items.first?.isInWatchlist == false)
+        #expect(sut.state.items.first?.isInWatchlist == false)
 
         sut.toggleWatchlist(at: 0)
 
-        let didUpdate = await waitUntil { await MainActor.run { sut.items.first?.isInWatchlist == true } }
+        let didUpdate = await waitUntil { await MainActor.run { sut.state.items.first?.isInWatchlist == true } }
         #expect(didUpdate)
         #expect(await watchlistStore.isInWatchlist(id: movie.id))
     }
@@ -77,16 +77,16 @@ struct MovieCatalogViewModelTests {
 
         sut.onAppear()
 
-        let didFail = await waitUntil { await MainActor.run { sut.error != nil } }
+        let didFail = await waitUntil { await MainActor.run { sut.errorState != nil } }
         #expect(didFail)
-        #expect(sut.error?.retry != nil)
+        #expect(sut.errorState?.retry != nil)
 
         sut.dismissError()
-        #expect(sut.error == nil)
+        #expect(sut.errorState == nil)
     }
 
     @Test
-    func test_onDisappear_stopsPrefetchController() {
+    func test_onDisappear_stopsPrefetchController() async {
         let service = MockMoviesService()
         let watchlistStore = MockWatchlistStore()
         let prefetchController = MockPosterPrefetchController()
@@ -98,7 +98,10 @@ struct MovieCatalogViewModelTests {
 
         sut.onDisappear()
 
-        #expect(prefetchController.stopCallsCount == 1)
+        let didStop = await waitUntil {
+            await prefetchController.stopCallsCountValue() == 1
+        }
+        #expect(didStop)
     }
 
     private func makeSUT(
@@ -133,5 +136,12 @@ struct MovieCatalogViewModelTests {
             voteAverage: 7.1,
             voteCount: 10
         )
+    }
+}
+
+private extension MovieCatalogViewModel {
+    var errorState: MovieCatalogErrorState? {
+        guard case let .error(_, details) = state else { return nil }
+        return details
     }
 }

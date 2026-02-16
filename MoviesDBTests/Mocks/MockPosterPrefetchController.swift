@@ -1,33 +1,32 @@
 import Foundation
 @testable import MoviesDB
 
-@MainActor
-final class MockPosterPrefetchController: PosterPrefetchControlling {
+actor MockPosterPrefetchController: PosterPrefetchControlling {
     struct VisibilityCall {
         let index: Int
         let isVisible: Bool
         let columns: Int
         let itemCount: Int
-        let posterURLAt: (Int) -> URL?
+        let posterURLAt: @Sendable (Int) -> URL?
     }
 
     struct ItemCountCall {
         let columns: Int
         let itemCount: Int
-        let posterURLAt: (Int) -> URL?
+        let posterURLAt: @Sendable (Int) -> URL?
     }
 
-    private(set) var visibilityCalls: [VisibilityCall] = []
-    private(set) var itemCountCalls: [ItemCountCall] = []
-    private(set) var stopCallsCount = 0
+    private var visibilityCalls: [VisibilityCall] = []
+    private var itemCountCalls: [ItemCountCall] = []
+    private var stopCallsCount = 0
 
     func itemVisibilityChanged(
         index: Int,
         isVisible: Bool,
         columns: Int,
         itemCount: Int,
-        posterURLAt: @escaping (Int) -> URL?
-    ) {
+        posterURLAt: @Sendable @escaping (Int) -> URL?
+    ) async {
         visibilityCalls.append(
             VisibilityCall(
                 index: index,
@@ -39,7 +38,7 @@ final class MockPosterPrefetchController: PosterPrefetchControlling {
         )
     }
 
-    func itemCountChanged(columns: Int, itemCount: Int, posterURLAt: @escaping (Int) -> URL?) {
+    func itemCountChanged(columns: Int, itemCount: Int, posterURLAt: @Sendable @escaping (Int) -> URL?) async {
         itemCountCalls.append(
             ItemCountCall(
                 columns: columns,
@@ -49,7 +48,19 @@ final class MockPosterPrefetchController: PosterPrefetchControlling {
         )
     }
 
-    func stop() {
+    func stop() async {
         stopCallsCount += 1
+    }
+
+    func visibilityCallsSnapshot() -> [VisibilityCall] {
+        visibilityCalls
+    }
+
+    func itemCountCallsSnapshot() -> [ItemCountCall] {
+        itemCountCalls
+    }
+
+    func stopCallsCountValue() -> Int {
+        stopCallsCount
     }
 }

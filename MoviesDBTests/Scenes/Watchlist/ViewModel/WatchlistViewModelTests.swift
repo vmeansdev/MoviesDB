@@ -17,11 +17,11 @@ struct WatchlistViewModelTests {
         await watchlistStore.add(movie: movie)
 
         let didUpdate = await waitUntil {
-            await MainActor.run { sut.items.count == 1 && sut.itemViewModels.count == 1 }
+            await MainActor.run { sut.state.itemViewModels.count == 1 }
         }
         #expect(didUpdate)
-        #expect(sut.itemViewModels.first?.title == "Movie 42")
-        #expect(sut.itemViewModels.first?.isInWatchlist == true)
+        #expect(sut.state.itemViewModels.first?.title == "Movie 42")
+        #expect(sut.state.itemViewModels.first?.isInWatchlist == true)
     }
 
     @Test
@@ -38,28 +38,36 @@ struct WatchlistViewModelTests {
     }
 
     @Test
-    func test_itemVisibilityChanged_forwardsToPrefetchController() {
+    func test_itemVisibilityChanged_forwardsToPrefetchController() async {
         let watchlistStore = MockWatchlistStore()
         let prefetchController = MockPosterPrefetchController()
         let sut = makeSUT(watchlistStore: watchlistStore, posterPrefetchController: prefetchController)
 
         sut.itemVisibilityChanged(index: 3, isVisible: true, columns: 2)
 
-        #expect(prefetchController.visibilityCalls.count == 1)
-        #expect(prefetchController.visibilityCalls[0].index == 3)
-        #expect(prefetchController.visibilityCalls[0].isVisible == true)
-        #expect(prefetchController.visibilityCalls[0].columns == 2)
+        let didForward = await waitUntil {
+            await prefetchController.visibilityCallsSnapshot().count == 1
+        }
+        #expect(didForward)
+
+        let calls = await prefetchController.visibilityCallsSnapshot()
+        #expect(calls[0].index == 3)
+        #expect(calls[0].isVisible == true)
+        #expect(calls[0].columns == 2)
     }
 
     @Test
-    func test_stopObserveWatchlist_stopsPrefetchController() {
+    func test_stopObserveWatchlist_stopsPrefetchController() async {
         let watchlistStore = MockWatchlistStore()
         let prefetchController = MockPosterPrefetchController()
         let sut = makeSUT(watchlistStore: watchlistStore, posterPrefetchController: prefetchController)
 
         sut.stopObserveWatchlist()
 
-        #expect(prefetchController.stopCallsCount == 1)
+        let didStop = await waitUntil {
+            await prefetchController.stopCallsCountValue() == 1
+        }
+        #expect(didStop)
     }
 
     private func makeSUT(

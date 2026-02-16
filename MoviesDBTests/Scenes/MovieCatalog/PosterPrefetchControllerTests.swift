@@ -9,13 +9,13 @@ struct PosterPrefetchControllerTests {
         let prefetcher = MockPosterImagePrefetcher()
         let sut = PosterPrefetchController(posterImagePrefetcher: prefetcher)
 
-        sut.itemVisibilityChanged(index: 5, isVisible: true, columns: 1, itemCount: 20) { index in
+        await sut.itemVisibilityChanged(index: 5, isVisible: true, columns: 1, itemCount: 20) { index in
             URL(string: "https://example.com/\(index).jpg")
         }
 
         try? await Task.sleep(for: .milliseconds(180))
         let expected = (3...9).compactMap { URL(string: "https://example.com/\($0).jpg") }
-        #expect(prefetcher.updateCalls.last == expected)
+        #expect(await prefetcher.updateCallsSnapshot().last == expected)
     }
 
     @Test
@@ -23,21 +23,21 @@ struct PosterPrefetchControllerTests {
         let prefetcher = MockPosterImagePrefetcher()
         let sut = PosterPrefetchController(posterImagePrefetcher: prefetcher)
 
-        sut.itemCountChanged(columns: 1, itemCount: 20) { index in
+        await sut.itemCountChanged(columns: 1, itemCount: 20) { index in
             URL(string: "https://example.com/\(index).jpg")
         }
 
         try? await Task.sleep(for: .milliseconds(180))
-        #expect(prefetcher.updateCalls.isEmpty)
+        #expect(await prefetcher.updateCallsSnapshot().isEmpty)
     }
 
     @Test
-    func test_stop_resetsPrefetcher() {
+    func test_stop_resetsPrefetcher() async {
         let prefetcher = MockPosterImagePrefetcher()
         let sut = PosterPrefetchController(posterImagePrefetcher: prefetcher)
 
-        sut.stop()
+        await sut.stop()
 
-        #expect(prefetcher.stopCallsCount == 1)
+        #expect(await prefetcher.stopCallsCountValue() == 1)
     }
 }
