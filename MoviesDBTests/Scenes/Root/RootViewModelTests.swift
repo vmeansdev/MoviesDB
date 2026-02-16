@@ -25,7 +25,7 @@ struct RootViewModelTests {
 
         let sut = RootViewModel(dependenciesProvider: dependencies)
 
-        #expect(renderProvider.makePosterPrefetchControllerCallsCount == 3)
+        #expect(renderProvider.makePrefetchCommandGateCallsCount == 3)
         #expect(sut.state.posterRenderSizeProvider as? MockPosterRenderSizeProvider === posterRenderSizeProvider)
     }
 

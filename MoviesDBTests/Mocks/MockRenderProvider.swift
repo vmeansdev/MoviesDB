@@ -6,7 +6,7 @@ import MovieDBUI
 final class MockRenderProvider: RenderProviderProtocol {
     let posterRenderSizeProvider: any PosterRenderSizeProviding
     let posterImagePrefetcher: any PosterImagePrefetching
-    private(set) var makePosterPrefetchControllerCallsCount = 0
+    private(set) var makePrefetchCommandGateCallsCount = 0
     private(set) var madeControllers: [MockPosterPrefetchController] = []
 
     init(
@@ -17,15 +17,15 @@ final class MockRenderProvider: RenderProviderProtocol {
         self.posterImagePrefetcher = posterImagePrefetcher
     }
 
-    func makePosterPrefetchController() -> any PosterPrefetchControlling {
-        makePosterPrefetchControllerCallsCount += 1
+    private func makePosterPrefetchController() -> any PosterPrefetchControlling {
         let controller = MockPosterPrefetchController()
         madeControllers.append(controller)
         return controller
     }
 
     func makePrefetchCommandGate() -> any PrefetchCommandGating {
-        PrefetchCommandGate(controller: makePosterPrefetchController())
+        makePrefetchCommandGateCallsCount += 1
+        return PrefetchCommandGate(controller: makePosterPrefetchController())
     }
 }
 

@@ -2,7 +2,6 @@
 protocol RenderProviderProtocol {
     var posterRenderSizeProvider: any PosterRenderSizeProviding { get }
     var posterImagePrefetcher: any PosterImagePrefetching { get }
-    func makePosterPrefetchController() -> any PosterPrefetchControlling
     func makePrefetchCommandGate() -> any PrefetchCommandGating
 }
 
@@ -19,7 +18,7 @@ final class RenderProvider: RenderProviderProtocol {
         self.posterImagePrefetcher = posterImagePrefetcher
     }
 
-    func makePosterPrefetchController() -> any PosterPrefetchControlling {
+    private func makePosterPrefetchController() -> any PosterPrefetchControlling {
         PosterPrefetchController(posterImagePrefetcher: posterImagePrefetcher)
     }
 
