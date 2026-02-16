@@ -125,4 +125,18 @@ struct WatchlistStoreTests {
         let afterRemove = await iterator.next()
         #expect(afterRemove?.isEmpty == true)
     }
+
+    @Test
+    func test_init_withCorruptedPersistedItems_clearsStorageAndStartsEmpty() async {
+        let key = "watchlist.test.corrupted.\(UUID().uuidString)"
+        defer { UserDefaults.standard.removeObject(forKey: key) }
+
+        UserDefaults.standard.set(Data("invalid-json".utf8), forKey: key)
+
+        let store = WatchlistStore(storageKey: key)
+        let items = await store.items()
+
+        #expect(items.isEmpty)
+        #expect(UserDefaults.standard.data(forKey: key) == nil)
+    }
 }

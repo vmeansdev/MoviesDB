@@ -88,6 +88,12 @@ public actor WatchlistStore: WatchlistStoreProtocol {
 
     private static func loadItems(from userDefaults: UserDefaults, storageKey: String) -> [Movie] {
         guard let data = userDefaults.data(forKey: storageKey) else { return [] }
-        return (try? JSONDecoder().decode([Movie].self, from: data)) ?? []
+        do {
+            return try JSONDecoder().decode([Movie].self, from: data)
+        } catch {
+            Log.storage.error("Failed to decode watchlist items for key \(storageKey): \(error)")
+            userDefaults.removeObject(forKey: storageKey)
+            return []
+        }
     }
 }
