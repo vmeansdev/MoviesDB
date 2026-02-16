@@ -8,6 +8,7 @@ protocol DependenciesProviderProtocol {
     var assetsProvider: AssetsProviderProtocol { get }
     var storeProvider: StoreProviderProtocol { get }
     var renderProvider: RenderProviderProtocol { get }
+    var viewModelProvider: ViewModelProviderProtocol { get }
 }
 
 final class DependenciesProvider: DependenciesProviderProtocol {
@@ -15,6 +16,7 @@ final class DependenciesProvider: DependenciesProviderProtocol {
     let assetsProvider: AssetsProviderProtocol
     let storeProvider: StoreProviderProtocol
     let renderProvider: RenderProviderProtocol
+    let viewModelProvider: ViewModelProviderProtocol
 
     init() {
         let baseURL = Environment.baseURLString
@@ -31,5 +33,11 @@ final class DependenciesProvider: DependenciesProviderProtocol {
         assetsProvider = AssetsProvider()
         storeProvider = StoreProvider()
         renderProvider = RenderProvider()
+        viewModelProvider = ViewModelProvider(
+            serviceProvider: serviceProvider,
+            assetsProvider: assetsProvider,
+            storeProvider: storeProvider,
+            renderProvider: renderProvider
+        )
     }
 }

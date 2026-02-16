@@ -49,16 +49,24 @@ final class MockDependenciesProvider: DependenciesProviderProtocol {
     let assetsProvider: AssetsProviderProtocol
     let storeProvider: StoreProviderProtocol
     let renderProvider: RenderProviderProtocol
+    let viewModelProvider: ViewModelProviderProtocol
 
     init(
         serviceProvider: ServiceProviderProtocol,
         assetsProvider: AssetsProviderProtocol,
         storeProvider: StoreProviderProtocol,
-        renderProvider: RenderProviderProtocol
+        renderProvider: RenderProviderProtocol,
+        viewModelProvider: ViewModelProviderProtocol? = nil
     ) {
         self.serviceProvider = serviceProvider
         self.assetsProvider = assetsProvider
         self.storeProvider = storeProvider
         self.renderProvider = renderProvider
+        self.viewModelProvider = viewModelProvider ?? ViewModelProvider(
+            serviceProvider: serviceProvider,
+            assetsProvider: assetsProvider,
+            storeProvider: storeProvider,
+            renderProvider: renderProvider
+        )
     }
 }

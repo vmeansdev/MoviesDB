@@ -5,50 +5,71 @@ import Observation
 @MainActor
 @Observable
 final class RootViewModel {
-    let popularViewModel: MovieCatalogViewModel
-    let topRatedViewModel: MovieCatalogViewModel
-    let watchlistViewModel: WatchlistViewModel
-    let posterRenderSizeProvider: any PosterRenderSizeProviding
+    private(set) var state: RootViewModelState
 
-    private let serviceProvider: ServiceProviderProtocol
-    private let assetsProvider: AssetsProviderProtocol
-    private let storeProvider: StoreProviderProtocol
+    private let viewModelProvider: ViewModelProviderProtocol
 
     init(dependenciesProvider: DependenciesProviderProtocol) {
-        self.serviceProvider = dependenciesProvider.serviceProvider
-        self.assetsProvider = dependenciesProvider.assetsProvider
-        self.storeProvider = dependenciesProvider.storeProvider
-        self.posterRenderSizeProvider = dependenciesProvider.renderProvider.posterRenderSizeProvider
-        self.popularViewModel = MovieCatalogViewModel(
-            kind: .popular,
-            moviesService: serviceProvider.moviesService,
-            watchlistStore: storeProvider.watchlistStore,
-            uiAssets: assetsProvider.uiAssets,
-            posterPrefetchController: dependenciesProvider.renderProvider.makePosterPrefetchController()
-        )
-        self.topRatedViewModel = MovieCatalogViewModel(
-            kind: .topRated,
-            moviesService: serviceProvider.moviesService,
-            watchlistStore: storeProvider.watchlistStore,
-            uiAssets: assetsProvider.uiAssets,
-            posterPrefetchController: dependenciesProvider.renderProvider.makePosterPrefetchController()
-        )
-        self.watchlistViewModel = WatchlistViewModel(
-            watchlistStore: storeProvider.watchlistStore,
-            uiAssets: assetsProvider.uiAssets,
-            posterPrefetchController: dependenciesProvider.renderProvider.makePosterPrefetchController()
+        self.viewModelProvider = dependenciesProvider.viewModelProvider
+        self.state = .ready(
+            popularViewModel: viewModelProvider.makeMovieCatalogViewModel(kind: .popular),
+            topRatedViewModel: viewModelProvider.makeMovieCatalogViewModel(kind: .topRated),
+            watchlistViewModel: viewModelProvider.makeWatchlistViewModel(),
+            posterRenderSizeProvider: dependenciesProvider.renderProvider.posterRenderSizeProvider,
+            tabAssets: dependenciesProvider.assetsProvider.uiAssets
         )
     }
 
-    var tabAssets: MovieDBUIAssetsProtocol { assetsProvider.uiAssets }
+    func makeMovieDetailsViewModel(movie: Movie) -> MovieDetailsViewModel {
+        viewModelProvider.makeMovieDetailsViewModel(movie: movie)
+    }
 
-    func makeMovieDetailsViewModel(movie: Movie, isInWatchlist: Bool) -> MovieDetailsViewModel {
-        MovieDetailsViewModel(
-            movie: movie,
-            isInWatchlist: isInWatchlist,
-            moviesService: serviceProvider.moviesService,
-            watchlistStore: storeProvider.watchlistStore,
-            uiAssets: assetsProvider.uiAssets
-        )
+    var detailsViewModelProvider: ViewModelProviderProtocol {
+        viewModelProvider
+    }
+}
+
+enum RootViewModelState {
+    case ready(
+        popularViewModel: MovieCatalogViewModel,
+        topRatedViewModel: MovieCatalogViewModel,
+        watchlistViewModel: WatchlistViewModel,
+        posterRenderSizeProvider: any PosterRenderSizeProviding,
+        tabAssets: MovieDBUIAssetsProtocol
+    )
+
+    var popularViewModel: MovieCatalogViewModel {
+        switch self {
+        case let .ready(popularViewModel, _, _, _, _):
+            return popularViewModel
+        }
+    }
+
+    var topRatedViewModel: MovieCatalogViewModel {
+        switch self {
+        case let .ready(_, topRatedViewModel, _, _, _):
+            return topRatedViewModel
+        }
+    }
+
+    var watchlistViewModel: WatchlistViewModel {
+        switch self {
+        case let .ready(_, _, watchlistViewModel, _, _):
+            return watchlistViewModel
+        }
+    }
+
+    var posterRenderSizeProvider: any PosterRenderSizeProviding {
+        switch self {
+        case let .ready(_, _, _, posterRenderSizeProvider, _):
+            return posterRenderSizeProvider
+        }
+    }
+
+    var tabAssets: MovieDBUIAssetsProtocol {
+        switch self {
+        case let .ready(_, _, _, _, tabAssets):
+            return tabAssets
+        }
     }
 }

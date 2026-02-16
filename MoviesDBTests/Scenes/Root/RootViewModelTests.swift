@@ -26,11 +26,11 @@ struct RootViewModelTests {
         let sut = RootViewModel(dependenciesProvider: dependencies)
 
         #expect(renderProvider.makePosterPrefetchControllerCallsCount == 3)
-        #expect(sut.posterRenderSizeProvider as? MockPosterRenderSizeProvider === posterRenderSizeProvider)
+        #expect(sut.state.posterRenderSizeProvider as? MockPosterRenderSizeProvider === posterRenderSizeProvider)
     }
 
     @Test
-    func test_makeMovieDetailsViewModel_preservesWatchlistState() {
+    func test_makeMovieDetailsViewModel_buildsViewModelFromDependencies() {
         let moviesService = MockMoviesService()
         let watchlistStore = MockWatchlistStore()
         let posterRenderSizeProvider = MockPosterRenderSizeProvider()
@@ -48,10 +48,10 @@ struct RootViewModelTests {
         let sut = RootViewModel(dependenciesProvider: dependencies)
         let movie = makeMovie(id: 101)
 
-        let detailsViewModel = sut.makeMovieDetailsViewModel(movie: movie, isInWatchlist: true)
+        let detailsViewModel = sut.makeMovieDetailsViewModel(movie: movie)
 
         #expect(detailsViewModel.content.title == "Movie 101")
-        #expect(detailsViewModel.isInWatchlist == true)
+        #expect(detailsViewModel.isInWatchlist == false)
     }
 
     private func makeMovie(id: Int) -> Movie {
