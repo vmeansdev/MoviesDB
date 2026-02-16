@@ -9,12 +9,17 @@ protocol PosterPrefetchControlling: Actor {
 
 actor PosterPrefetchController: PosterPrefetchControlling {
     private let posterImagePrefetcher: any PosterImagePrefetching
+    private let prefetchDebounceNanoseconds: UInt64
 
     private var visibleIndices = Set<Int>()
     private var prefetchTask: Task<Void, Never>?
 
-    init(posterImagePrefetcher: any PosterImagePrefetching) {
+    init(
+        posterImagePrefetcher: any PosterImagePrefetching,
+        prefetchDebounceNanoseconds: UInt64 = Constants.prefetchDebounceNanoseconds
+    ) {
         self.posterImagePrefetcher = posterImagePrefetcher
+        self.prefetchDebounceNanoseconds = prefetchDebounceNanoseconds
     }
 
     func itemVisibilityChanged(index: Int, isVisible: Bool, columns: Int, itemCount: Int, posterURLAt: @Sendable @escaping (Int) -> URL?) async {
@@ -40,7 +45,9 @@ actor PosterPrefetchController: PosterPrefetchControlling {
     private func schedulePrefetch(columns: Int, itemCount: Int, posterURLAt: @Sendable @escaping (Int) -> URL?) {
         prefetchTask?.cancel()
         prefetchTask = Task { [weak self] in
-            try? await Task.sleep(nanoseconds: Constants.prefetchDebounceNanoseconds)
+            if let self, self.prefetchDebounceNanoseconds > 0 {
+                try? await Task.sleep(nanoseconds: self.prefetchDebounceNanoseconds)
+            }
             guard let self, !Task.isCancelled else { return }
             await self.updatePrefetch(columns: columns, itemCount: itemCount, posterURLAt: posterURLAt)
         }

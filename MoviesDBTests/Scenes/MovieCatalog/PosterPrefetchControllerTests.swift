@@ -7,28 +7,38 @@ struct PosterPrefetchControllerTests {
     @Test
     func test_itemVisibilityChanged_prefetchesVisibleWindow() async {
         let prefetcher = MockPosterImagePrefetcher()
-        let sut = PosterPrefetchController(posterImagePrefetcher: prefetcher)
+        let sut = PosterPrefetchController(
+            posterImagePrefetcher: prefetcher,
+            prefetchDebounceNanoseconds: 0
+        )
 
         await sut.itemVisibilityChanged(index: 5, isVisible: true, columns: 1, itemCount: 20) { index in
             URL(string: "https://example.com/\(index).jpg")
         }
 
-        try? await Task.sleep(for: .milliseconds(180))
         let expected = (3...9).compactMap { URL(string: "https://example.com/\($0).jpg") }
-        #expect(await prefetcher.updateCallsSnapshot().last == expected)
+        let didPrefetch = await waitUntil {
+            await prefetcher.updateCallsSnapshot().last == expected
+        }
+        #expect(didPrefetch)
     }
 
     @Test
     func test_itemCountChanged_withoutVisibleIndices_doesNotPrefetch() async {
         let prefetcher = MockPosterImagePrefetcher()
-        let sut = PosterPrefetchController(posterImagePrefetcher: prefetcher)
+        let sut = PosterPrefetchController(
+            posterImagePrefetcher: prefetcher,
+            prefetchDebounceNanoseconds: 0
+        )
 
         await sut.itemCountChanged(columns: 1, itemCount: 20) { index in
             URL(string: "https://example.com/\(index).jpg")
         }
 
-        try? await Task.sleep(for: .milliseconds(180))
-        #expect(await prefetcher.updateCallsSnapshot().isEmpty)
+        let stayedEmpty = await waitUntil(timeout: .milliseconds(120)) {
+            await prefetcher.updateCallsSnapshot().isEmpty
+        }
+        #expect(stayedEmpty)
     }
 
     @Test
