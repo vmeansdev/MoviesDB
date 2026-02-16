@@ -1,5 +1,4 @@
 import MovieDBData
-import MovieDBUI
 
 struct MovieDetailsRoute: Hashable {
     let id: Int

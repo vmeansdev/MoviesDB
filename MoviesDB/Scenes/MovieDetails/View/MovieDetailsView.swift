@@ -1,15 +1,16 @@
 import Kingfisher
+import MovieDBUI
 import SwiftUI
 import UIKit
 
-public struct MovieDetailsView: View {
+struct MovieDetailsView: View {
     @Bindable private var viewModel: MovieDetailsViewModel
 
-    public init(viewModel: MovieDetailsViewModel) {
+    init(viewModel: MovieDetailsViewModel) {
         self.viewModel = viewModel
     }
 
-    public var body: some View {
+    var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Constants.contentStackSpacing) {
                 header
@@ -22,7 +23,7 @@ public struct MovieDetailsView: View {
         .ignoresSafeArea(.container, edges: .top)
         .navigationBarTitleDisplayMode(.inline)
         .task { await viewModel.loadDetailsIfNeeded() }
-        .onAppear { viewModel.startObserveWatchlist() }
+        .task { viewModel.startObserveWatchlist() }
         .onDisappear { viewModel.stopObserveWatchlist() }
     }
 
@@ -89,7 +90,7 @@ public struct MovieDetailsView: View {
                             .foregroundColor(.primary)
                     }
                     .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(Text(MovieDBUILocalizable.format(.metadataAccessibilityFormat, item.title, item.value)))
+                    .accessibilityLabel(Text("\(item.title), \(item.value)"))
                 }
             }
             .padding(.top, Constants.detailsCardTopPadding)
@@ -104,7 +105,7 @@ public struct MovieDetailsView: View {
         }
         .accessibilityLabel(Text(watchlistAccessibilityLabel))
         .accessibilityValue(Text(watchlistAccessibilityValue))
-        .accessibilityHint(Text(MovieDBUILocalizable.string(.watchlistAccessibilityHint)))
+        .accessibilityHint(Text(String.localizable.watchlistAccessibilityHint))
         .padding(Constants.watchlistButtonPadding)
     }
 
@@ -128,22 +129,19 @@ public struct MovieDetailsView: View {
     }
 
     private var headerImageAccessibilityLabel: String {
-        if content.backdropURL != nil {
-            return MovieDBUILocalizable.format(.backdropAccessibilityFormat, content.title)
-        }
-        return MovieDBUILocalizable.format(.posterAccessibilityFormat, content.title)
+        String(format: String.localizable.watchlistPosterAccessibilityFormat, content.title)
     }
 
     private var watchlistAccessibilityLabel: String {
         viewModel.isInWatchlist
-            ? MovieDBUILocalizable.string(.watchlistAccessibilityRemove)
-            : MovieDBUILocalizable.string(.watchlistAccessibilityAdd)
+            ? String.localizable.watchlistAccessibilityRemove
+            : String.localizable.watchlistAccessibilityAdd
     }
 
     private var watchlistAccessibilityValue: String {
         viewModel.isInWatchlist
-            ? MovieDBUILocalizable.string(.watchlistAccessibilityValueIn)
-            : MovieDBUILocalizable.string(.watchlistAccessibilityValueOut)
+            ? String.localizable.watchlistAccessibilityValueIn
+            : String.localizable.watchlistAccessibilityValueOut
     }
 }
 

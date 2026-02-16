@@ -1,56 +1,151 @@
 import Foundation
 import MovieDBData
 import MovieDBUI
+import Observation
 import UIKit
 
-extension MovieDetailsViewModel {
-    convenience init(
+struct MovieDetailsContent: Equatable, Sendable {
+    let title: String
+    let subtitle: String?
+    let overviewTitle: String
+    let overview: String
+    let metadata: [MovieDetailsMetadataItem]
+    let posterURL: URL?
+    let backdropURL: URL?
+}
+
+struct MovieDetailsMetadataItem: Identifiable, Equatable, Sendable {
+    let id: String
+    let title: String
+    let value: String
+}
+
+enum MovieDetailsViewModelState {
+    case idle(content: MovieDetailsContent, isInWatchlist: Bool)
+    case loading(content: MovieDetailsContent, isInWatchlist: Bool)
+
+    var content: MovieDetailsContent {
+        switch self {
+        case let .idle(content, _), let .loading(content, _):
+            return content
+        }
+    }
+
+    var isInWatchlist: Bool {
+        switch self {
+        case let .idle(_, isInWatchlist), let .loading(_, isInWatchlist):
+            return isInWatchlist
+        }
+    }
+
+    func replacing(content: MovieDetailsContent) -> MovieDetailsViewModelState {
+        switch self {
+        case let .idle(_, isInWatchlist):
+            return .idle(content: content, isInWatchlist: isInWatchlist)
+        case let .loading(_, isInWatchlist):
+            return .loading(content: content, isInWatchlist: isInWatchlist)
+        }
+    }
+
+    func replacing(isInWatchlist: Bool) -> MovieDetailsViewModelState {
+        switch self {
+        case let .idle(content, _):
+            return .idle(content: content, isInWatchlist: isInWatchlist)
+        case let .loading(content, _):
+            return .loading(content: content, isInWatchlist: isInWatchlist)
+        }
+    }
+
+    func loading() -> MovieDetailsViewModelState {
+        .loading(content: content, isInWatchlist: isInWatchlist)
+    }
+
+    func idle() -> MovieDetailsViewModelState {
+        .idle(content: content, isInWatchlist: isInWatchlist)
+    }
+}
+
+@MainActor
+@Observable
+final class MovieDetailsViewModel {
+    private(set) var state: MovieDetailsViewModelState
+
+    let watchlistIcon: UIImage?
+    let watchlistFilledIcon: UIImage?
+    private let movie: Movie
+    private let moviesService: MoviesServiceProtocol?
+    private let watchlistStore: WatchlistStoreProtocol?
+    private let watchlistActiveTintColor: UIColor
+    private let watchlistInactiveTintColor: UIColor
+    @ObservationIgnored private var hasLoadedDetails = false
+    @ObservationIgnored private var watchlistTask: Task<Void, Never>?
+
+    init(
         movie: Movie,
-        isInWatchlist: Bool = false,
         moviesService: MoviesServiceProtocol?,
         watchlistStore: WatchlistStoreProtocol?,
         uiAssets: MovieDBUIAssetsProtocol?
     ) {
-        let baseContent = Self.makeContent(movie: movie, details: nil)
-        let watchlistUpdates: (@Sendable () async -> AsyncStream<Bool>)? = {
-            guard let watchlistStore else { return AsyncStream { $0.finish() } }
-            return AsyncStream { continuation in
-                let task = Task {
-                    let stream = await watchlistStore.itemsStream()
-                    for await items in stream {
-                        if Task.isCancelled { break }
-                        continuation.yield(items.contains { $0.id == movie.id })
-                    }
-                    continuation.finish()
-                }
-                continuation.onTermination = { _ in
-                    task.cancel()
-                }
-            }
-        }
-        let toggleWatchlist: (@Sendable () async -> Void)? = {
-            guard let watchlistStore else { return }
-            await watchlistStore.toggle(movie: movie)
-        }
-        self.init(
-            content: baseContent,
-            isInWatchlist: isInWatchlist,
-            watchlistIcon: uiAssets?.heartIcon,
-            watchlistFilledIcon: uiAssets?.heartFilledIcon,
-            watchlistActiveTintColor: .systemPink,
-            watchlistInactiveTintColor: .white,
-            watchlistUpdates: watchlistUpdates,
-            toggleWatchlistAction: toggleWatchlist,
-            loadDetails: {
-                guard let moviesService else { return baseContent }
-                let details = try await moviesService.fetchDetails(id: movie.id)
-                return await Self.makeContent(movie: movie, details: details)
-            }
-        )
+        self.movie = movie
+        self.moviesService = moviesService
+        self.watchlistStore = watchlistStore
+        self.watchlistIcon = uiAssets?.heartIcon
+        self.watchlistFilledIcon = uiAssets?.heartFilledIcon
+        self.watchlistActiveTintColor = uiAssets?.watchlistActiveTintColor ?? .systemPink
+        self.watchlistInactiveTintColor = uiAssets?.watchlistInactiveTintColor ?? .white
+        self.state = .idle(content: Self.makeContent(movie: movie, details: nil), isInWatchlist: false)
     }
 
-    convenience init(movie: Movie, isInWatchlist: Bool = false) {
-        self.init(movie: movie, isInWatchlist: isInWatchlist, moviesService: nil, watchlistStore: nil, uiAssets: nil)
+    var content: MovieDetailsContent {
+        state.content
+    }
+
+    var isInWatchlist: Bool {
+        state.isInWatchlist
+    }
+
+    var watchlistTintColor: UIColor {
+        isInWatchlist ? watchlistActiveTintColor : watchlistInactiveTintColor
+    }
+
+    func toggleWatchlist() async {
+        guard watchlistStore != nil else { return }
+        state = state.replacing(isInWatchlist: !state.isInWatchlist)
+        await watchlistStore?.toggle(movie: movie)
+    }
+
+    func loadDetailsIfNeeded() async {
+        guard !hasLoadedDetails else { return }
+        hasLoadedDetails = true
+        guard let moviesService else { return }
+
+        state = state.loading()
+        do {
+            let details = try await moviesService.fetchDetails(id: movie.id)
+            state = .idle(
+                content: Self.makeContent(movie: movie, details: details),
+                isInWatchlist: state.isInWatchlist
+            )
+        } catch {
+            state = state.idle()
+        }
+    }
+
+    func startObserveWatchlist() {
+        guard let watchlistStore else { return }
+        watchlistTask?.cancel()
+        watchlistTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            let stream = await watchlistStore.itemsStream()
+            for await items in stream {
+                self.state = self.state.replacing(isInWatchlist: items.contains { $0.id == self.movie.id })
+            }
+        }
+    }
+
+    func stopObserveWatchlist() {
+        watchlistTask?.cancel()
+        watchlistTask = nil
     }
 }
 

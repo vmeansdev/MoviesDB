@@ -10,6 +10,8 @@ public protocol MovieDBUIAssetsProtocol {
     var watchlistEmptyIcon: UIImage? { get }
     var heartIcon: UIImage? { get }
     var heartFilledIcon: UIImage? { get }
+    var watchlistActiveTintColor: UIColor { get }
+    var watchlistInactiveTintColor: UIColor { get }
 }
 
 public struct MovieDBUIAssets: MovieDBUIAssetsProtocol {
@@ -22,6 +24,8 @@ public struct MovieDBUIAssets: MovieDBUIAssetsProtocol {
     public let watchlistEmptyIcon: UIImage?
     public let heartIcon: UIImage?
     public let heartFilledIcon: UIImage?
+    public let watchlistActiveTintColor: UIColor
+    public let watchlistInactiveTintColor: UIColor
 
     public init(
         popularTabIcon: UIImage?,
@@ -32,7 +36,9 @@ public struct MovieDBUIAssets: MovieDBUIAssetsProtocol {
         watchlistTabSelectedIcon: UIImage?,
         watchlistEmptyIcon: UIImage?,
         heartIcon: UIImage?,
-        heartFilledIcon: UIImage?
+        heartFilledIcon: UIImage?,
+        watchlistActiveTintColor: UIColor,
+        watchlistInactiveTintColor: UIColor
     ) {
         self.popularTabIcon = popularTabIcon
         self.popularTabSelectedIcon = popularTabSelectedIcon
@@ -43,6 +49,8 @@ public struct MovieDBUIAssets: MovieDBUIAssetsProtocol {
         self.watchlistEmptyIcon = watchlistEmptyIcon
         self.heartIcon = heartIcon
         self.heartFilledIcon = heartFilledIcon
+        self.watchlistActiveTintColor = watchlistActiveTintColor
+        self.watchlistInactiveTintColor = watchlistInactiveTintColor
     }
 
     public static var system: MovieDBUIAssets {
@@ -55,7 +63,9 @@ public struct MovieDBUIAssets: MovieDBUIAssetsProtocol {
             watchlistTabSelectedIcon: UIImage(systemName: "heart.fill"),
             watchlistEmptyIcon: UIImage(systemName: "heart.slash"),
             heartIcon: UIImage(systemName: "heart"),
-            heartFilledIcon: UIImage(systemName: "heart.fill")
+            heartFilledIcon: UIImage(systemName: "heart.fill"),
+            watchlistActiveTintColor: .systemPink,
+            watchlistInactiveTintColor: .white
         )
     }
 }
