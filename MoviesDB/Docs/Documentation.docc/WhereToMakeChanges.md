@@ -9,4 +9,5 @@
 - `Dependencies/MovieDBData/Sources/MovieDBData/Networking`
 - `MoviesDB/Scenes/MovieCatalog/View/MovieCatalogView.swift`
 - `MoviesDB/Scenes/Watchlist/View`
-- `Dependencies/MovieDBUI/Sources/MovieDBUI/Assets`
+- `Dependencies/MovieDBUI/Sources/MovieDBUI/Common/MovieDBUIAssets.swift`
+- `Dependencies/MovieDBUI/Sources/MovieDBUI/Resources`

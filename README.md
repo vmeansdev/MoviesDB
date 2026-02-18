@@ -8,7 +8,7 @@
   <img src="https://github.com/vmeansdev/MoviesDB/actions/workflows/ci.yml/badge.svg" alt="CI Status" />
 </p>
 
-MoviesDB is a Swift 6 iOS application that delivers a fast, elegant movie browsing experience with a clean, testable architecture and a UI that scales from iPhone to iPad. The project is built to be production-ready: strict concurrency checks, modular packages, structured documentation, and a fully automated test pipeline.
+MoviesDB is a Swift 6 iOS application that delivers a fast, elegant movie browsing experience with a clean, testable architecture and a UI that scales from iPhone to iPad. The project emphasizes strict concurrency checks, modular packages, structured documentation, and an automated CI test pipeline.
 
 **Highlights**
 - Swift 6 codebase with strict concurrency checks enabled.
@@ -40,11 +40,11 @@ MoviesDB is a Swift 6 iOS application that delivers a fast, elegant movie browsi
   ```
 - App tests:
   ```bash
-  xcodebuild -scheme MoviesDB -destination 'platform=iOS Simulator,OS=18.2,name=iPhone 16 Pro' test
+  xcodebuild -scheme MoviesDB -destination 'platform=iOS Simulator,OS=18.5,name=iPhone 16 Pro' test
   ```
 - UI package tests:
   ```bash
-  SNAPSHOT_TESTING_RECORD=0 xcodebuild -workspace Dependencies/MovieDBUI/.swiftpm/xcode/package.xcworkspace -scheme MovieDBUI -destination 'platform=iOS Simulator,OS=18.2,name=iPhone 16 Pro' test
+  SNAPSHOT_TESTING_RECORD=0 xcodebuild -workspace Dependencies/MovieDBUI/.swiftpm/xcode/package.xcworkspace -scheme MovieDBUI -destination 'platform=iOS Simulator,OS=18.5,name=iPhone 16 Pro' test
   ```
 - Data package tests:
   ```bash
